@@ -93,7 +93,8 @@ int main(int argc, char const* argv[])
     for (lt::alert const* a : alerts) {
 		if (auto at = lt::alert_cast<lt::add_torrent_alert>(a)) {
 				handles.push_back(at->handle);
-
+				at->handle.set_upload_limit(150*1000);
+				at->handle.set_download_limit(150*1000);
 		}
 		if (auto at = lt::alert_cast<lt::torrent_finished_alert>(a)) {
 			at->handle.save_resume_data();

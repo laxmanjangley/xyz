@@ -88,44 +88,7 @@ void print_progress(int i, int num)
 
 void print_usage()
 {
-  fputs("usage: ./a.out FILE [OPTIONS]\n"
-    "\n"
-    "Generates a torrent file from the specified file\n"
-    "or directory and writes it to standard out\n\n"
-    "OPTIONS:\n"
-    "-m file       generate a merkle hash tree torrent.\n"
-    "              merkle torrents require client support\n"
-    "              the resulting full merkle tree is written to\n"
-    "              the specified file\n"
-    "-w url        adds a web seed to the torrent with\n"
-    "              the specified url\n"
-    "-t url        adds the specified tracker to the\n"
-    "              torrent. For multiple trackers, specify more\n"
-    "              -t options\n"
-    "-c comment    sets the comment to the specified string\n"
-    "-C creator    sets the created-by field to the specified string\n"
-    "-p bytes      enables padding files. Files larger\n"
-    "              than bytes will be piece-aligned\n"
-    "-s bytes      specifies a piece size for the torrent\n"
-    "              This has to be a multiple of 16 kiB\n"
-    "-l            Don't follow symlinks, instead encode them as\n"
-    "              links in the torrent file\n"
-    "-o file       specifies the output filename of the torrent file\n"
-    "              If this is not specified, the torrent file is\n"
-    "              printed to the standard out, except on windows\n"
-    "              where the filename defaults to a.torrent\n"
-    "-r file       add root certificate to the torrent, to verify\n"
-    "              the HTTPS tracker\n"
-    "-S info-hash  add a similar torrent by info-hash. The similar\n"
-    "              torrent is expected to share some files with this one\n"
-    "-L collection add a collection name to this torrent. Other torrents\n"
-    "              in the same collection is expected to share files\n"
-    "              with this one.\n"
-    "-M            make the torrent compatible with mutable torrents\n"
-    "              this means aligning large files and pad them in order\n"
-    "              for piece hashes to uniquely indentify a file without\n"
-    "              overlap\n"
-    , stderr);
+  return;
 }
 
 int main(int argc, char* argv[])

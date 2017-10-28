@@ -20,9 +20,8 @@ namespace lt = libtorrent;
 using clk = std::chrono::steady_clock;
 using lt::torrent_handle;
 
-
-
-
+std::vector<lt::torrent_handle> handles;
+std::vector<lt::peer_info> peers;
 
 // return the name of a torrent status enum
 char const* state(lt::torrent_status::state_t s)
@@ -57,6 +56,7 @@ int main(int argc, char const* argv[])
   //   std::cerr << "usage: " << argv[0] << " <magnet-url>" << std::endl;
   //   return 1;
   // }
+	// signal(SIGINT,int_handler);
 	std::cout<<argv[1]<<std::endl;
   lt::settings_pack pack;
   pack.set_int(lt::settings_pack::alert_mask
@@ -72,7 +72,7 @@ int main(int argc, char const* argv[])
   for(int i=0;i<(argc-1)/2;i++){
   		lt::add_torrent_params atp;
   // load resume data from disk and pass it in as we add the magnet link
-		std::ifstream ifs((std::string)argv[2*i+1]+".s_file", std::ios_base::binary);
+		std::ifstream ifs((std::string)argv[2*i+1]+".r_file", std::ios_base::binary);
 		ifs.unsetf(std::ios_base::skipws);
 		atp.resume_data.assign(std::istream_iterator<char>(ifs)
 		, std::istream_iterator<char>());
@@ -85,15 +85,15 @@ int main(int argc, char const* argv[])
   // this is the handle we'll set once we get the notification of it being
   // added
 
-  std::vector<lt::torrent_handle> handles;
-  std::vector<lt::peer_info> peers;
+  
   for (;;) {
     std::vector<lt::alert*> alerts;
     ses.pop_alerts(&alerts);
     for (lt::alert const* a : alerts) {
 		if (auto at = lt::alert_cast<lt::add_torrent_alert>(a)) {
 				handles.push_back(at->handle);
-
+				at->handle.set_upload_limit(150*1000);
+				at->handle.set_download_limit(150*1000);
 		}
 		if (auto at = lt::alert_cast<lt::torrent_finished_alert>(a)) {
 			at->handle.save_resume_data();
@@ -119,7 +119,7 @@ int main(int argc, char const* argv[])
 		if (auto rd = lt::alert_cast<lt::save_resume_data_alert>(a)) {
 			std::string name = rd->handle.status().name;
 			// std::cout<<name<<std::endl;
-			std::ofstream of(name+".torrent.s_file", std::ios_base::binary);
+			std::ofstream of(name+".torrent.r_file", std::ios_base::binary);
 			of.unsetf(std::ios_base::skipws);
 			lt::bencode(std::ostream_iterator<char>(of)
 			, *rd->resume_data);
@@ -128,7 +128,6 @@ int main(int argc, char const* argv[])
 		if (auto st = lt::alert_cast<lt::state_update_alert>(a)) {
 			// std::cout<<a->message()<<std::endl;
 			if (st->status.empty()) continue;
-			std::cout.flush();
 			// we only have a single torrent, so we know which one
 			// the status is for
 			lt::torrent_status const& s = st->status[0];
