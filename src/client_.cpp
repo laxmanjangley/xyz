@@ -79,7 +79,7 @@ int main(int argc, char const* argv[])
 		// atp.url = argv[1];
 		atp.ti = boost::make_shared<lt::torrent_info>(std::string(argv[2*i+1]), boost::ref(ec), 0);
 		atp.save_path = argv[2*i+2]; // save in current dir
-		atp.flags |= lt::add_torrent_params::flag_seed_mode;
+		// atp.flags |= lt::add_torrent_params::flag_seed_mode;
 		ses.async_add_torrent(atp);
   }
   // this is the handle we'll set once we get the notification of it being
@@ -105,7 +105,7 @@ int main(int argc, char const* argv[])
 	        }
 	        if (!p) goto done;
 	        if (!v) {
-	        		// goto done;
+	        		goto done;
 	        }
 		}
 		if (lt::alert_cast<lt::torrent_error_alert>(a)) {
@@ -136,7 +136,7 @@ int main(int argc, char const* argv[])
 			// std::type(s.state)
 			// // s.state="downloading";
 			std::cout << "\rName : " << s.name<<"\tState : "<<state(s.state) << "\t\tDL rate : "
-			<< (s.upload_payload_rate / 1000) <<" kB/s\tDone : "
+			<< (s.download_payload_rate / 1000) <<" kB/s\tUL rate : "<< (s.upload_payload_rate / 1000) << " kB/s\tDone : "
 			<< (s.total_done / 1000) << "kB\t\tProgress : "
 			<< (s.progress_ppm / 10000) << "%\n";
 			std::cout.flush();
