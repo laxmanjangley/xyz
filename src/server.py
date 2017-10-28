@@ -7,6 +7,18 @@ from subprocess import Popen, PIPE, STDOUT
 from threading import Thread
 from time import sleep
 
+def _mkdir(newdir):
+    if os.path.isdir(newdir):
+        pass
+    elif os.path.isfile(newdir):
+        raise OSError("a file with the same name as the desired " \
+                      "dir, '%s', already exists." % newdir)
+    else:
+        head, tail = os.path.split(newdir)
+        if head and not os.path.isdir(head):
+            _mkdir(head)
+        if tail:
+            os.mkdir(newdir)
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -45,6 +57,7 @@ for dirs in sub_dirs:
 	package("./uri "+path_cre +" -o "+torrent_file)
 	#os.system("./uri "+path +" -o "+torrent_file)
 
+_mkdir("/home/next/Desktop/tmp")
 os.chdir("/home/next/Desktop/tmp")
 print os.system("pwd")
 

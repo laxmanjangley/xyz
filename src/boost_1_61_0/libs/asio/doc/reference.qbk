@@ -1,0 +1,3853 @@
+[/
+ / Copyright (c) 2003-2015 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+ /
+ / Distributed under the Boost Software License, Version 1.0. (See accompanying
+ / file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ /]
+
+[section:reference Reference]
+
+[xinclude quickref.xml]
+
+[include requirements/asynchronous_operations.qbk]
+[include requirements/AcceptHandler.qbk]
+[include requirements/AsyncRandomAccessReadDevice.qbk]
+[include requirements/AsyncRandomAccessWriteDevice.qbk]
+[include requirements/AsyncReadStream.qbk]
+[include requirements/AsyncWriteStream.qbk]
+[include requirements/BufferedHandshakeHandler.qbk]
+[include requirements/CompletionHandler.qbk]
+[include requirements/ComposedConnectHandler.qbk]
+[include requirements/ConnectHandler.qbk]
+[include requirements/ConstBufferSequence.qbk]
+[include requirements/ConvertibleToConstBuffer.qbk]
+[include requirements/ConvertibleToMutableBuffer.qbk]
+[include requirements/DatagramSocketService.qbk]
+[include requirements/DescriptorService.qbk]
+[include requirements/Endpoint.qbk]
+[include requirements/GettableSerialPortOption.qbk]
+[include requirements/GettableSocketOption.qbk]
+[include requirements/Handler.qbk]
+[include requirements/HandleService.qbk]
+[include requirements/HandshakeHandler.qbk]
+[include requirements/InternetProtocol.qbk]
+[include requirements/IoControlCommand.qbk]
+[include requirements/IoObjectService.qbk]
+[include requirements/MutableBufferSequence.qbk]
+[include requirements/ObjectHandleService.qbk]
+[include requirements/Protocol.qbk]
+[include requirements/RandomAccessHandleService.qbk]
+[include requirements/RawSocketService.qbk]
+[include requirements/ReadHandler.qbk]
+[include requirements/ResolveHandler.qbk]
+[include requirements/ResolverService.qbk]
+[include requirements/SeqPacketSocketService.qbk]
+[include requirements/SerialPortService.qbk]
+[include requirements/Service.qbk]
+[include requirements/SettableSerialPortOption.qbk]
+[include requirements/SettableSocketOption.qbk]
+[include requirements/ShutdownHandler.qbk]
+[include requirements/SignalHandler.qbk]
+[include requirements/SignalSetService.qbk]
+[include requirements/SocketAcceptorService.qbk]
+[include requirements/SocketService.qbk]
+[include requirements/StreamDescriptorService.qbk]
+[include requirements/StreamHandleService.qbk]
+[include requirements/StreamSocketService.qbk]
+[include requirements/SyncRandomAccessReadDevice.qbk]
+[include requirements/SyncRandomAccessWriteDevice.qbk]
+[include requirements/SyncReadStream.qbk]
+[include requirements/SyncWriteStream.qbk]
+[include requirements/TimeTraits.qbk]
+[include requirements/TimerService.qbk]
+[include requirements/WaitableTimerService.qbk]
+[include requirements/WaitHandler.qbk]
+[include requirements/WaitTraits.qbk]
+[include requirements/WriteHandler.qbk]
+
+
+
+[section:add_service add_service]
+
+[indexterm1 add_service] 
+
+  template<
+      typename ``[link boost_asio.reference.Service Service]``>
+  void add_service(
+      io_service & ios,
+      Service * svc);
+
+
+This function is used to add a service to the [link boost_asio.reference.io_service `io_service`].
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[ios][The [link boost_asio.reference.io_service `io_service`] object that owns the service.]]
+
+[[svc][The service object. On success, ownership of the service object is transferred to the [link boost_asio.reference.io_service `io_service`]. When the [link boost_asio.reference.io_service `io_service`] object is destroyed, it will destroy the service object by performing: 
+``
+   delete static_cast<io_service::service*>(svc) 
+``
+]]
+
+]
+
+
+[heading Exceptions]
+    
+
+[variablelist
+  
+[[boost::asio::service_already_exists][Thrown if a service of the given type is already present in the [link boost_asio.reference.io_service `io_service`].]]
+
+[[boost::asio::invalid_service_owner][Thrown if the service's owning [link boost_asio.reference.io_service `io_service`] is not the [link boost_asio.reference.io_service `io_service`] object specified by the ios parameter. ]]
+
+]
+
+
+
+[heading Requirements]
+
+['Header: ][^boost/asio/io_service.hpp]
+
+['Convenience header: ][^boost/asio.hpp]
+
+
+[endsect]
+
+
+
+[section:asio_handler_allocate asio_handler_allocate]
+
+[indexterm1 asio_handler_allocate] 
+Default allocation function for handlers. 
+
+
+  void * asio_handler_allocate(
+      std::size_t size,
+      ... );
+
+
+Asynchronous operations may need to allocate temporary objects. Since asynchronous operations have a handler function object, these temporary objects can be said to be associated with the handler.
+
+Implement asio\_handler\_allocate and asio\_handler\_deallocate for your own handlers to provide custom allocation for these temporary objects.
+
+The default implementation of these allocation hooks uses `operator new` and `operator delete`.
+
+
+[heading Remarks]
+      
+All temporary objects associated with a handler will be deallocated before the upcall to the handler is performed. This allows the same memory to be reused for a subsequent asynchronous operation initiated by the handler.
+
+
+[heading Example]
+  
+
+
+   class my_handler;
+
+   void* asio_handler_allocate(std::size_t size, my_handler* context)
+   {
+     return ::operator new(size);
+   }
+
+   void asio_handler_deallocate(void* pointer, std::size_t size,
+       my_handler* context)
+   {
+     ::operator delete(pointer);
+   }
+
+
+
+
+
+
+[heading Requirements]
+
+['Header: ][^boost/asio/handler_alloc_hook.hpp]
+
+['Convenience header: ][^boost/asio.hpp]
+
+
+[endsect]
+
+
+
+[section:asio_handler_deallocate asio_handler_deallocate]
+
+[indexterm1 asio_handler_deallocate] 
+Default deallocation function for handlers. 
+
+
+  void asio_handler_deallocate(
+      void * pointer,
+      std::size_t size,
+      ... );
+
+
+Implement asio\_handler\_allocate and asio\_handler\_deallocate for your own handlers to provide custom allocation for the associated temporary objects.
+
+The default implementation of these allocation hooks uses `operator new` and `operator delete`.
+
+
+
+
+[heading Requirements]
+
+['Header: ][^boost/asio/handler_alloc_hook.hpp]
+
+['Convenience header: ][^boost/asio.hpp]
+
+
+[endsect]
+
+
+[section:asio_handler_invoke asio_handler_invoke]
+
+[indexterm1 asio_handler_invoke] 
+Default invoke function for handlers. 
+
+      
+  template<
+      typename Function>
+  void ``[link boost_asio.reference.asio_handler_invoke.overload1 asio_handler_invoke]``(
+      Function & function,
+      ... );
+  ``  [''''&raquo;''' [link boost_asio.reference.asio_handler_invoke.overload1 more...]]``
+
+  template<
+      typename Function>
+  void ``[link boost_asio.reference.asio_handler_invoke.overload2 asio_handler_invoke]``(
+      const Function & function,
+      ... );
+  ``  [''''&raquo;''' [link boost_asio.reference.asio_handler_invoke.overload2 more...]]``
+
+Completion handlers for asynchronous operations are invoked by the [link boost_asio.reference.io_service `io_service`] associated with the corresponding object (e.g. a socket or deadline\_timer). Certain guarantees are made on when the handler may be invoked, in particular that a handler can only be invoked from a thread that is currently calling `run()` on the corresponding [link boost_asio.reference.io_service `io_service`] object. Handlers may subsequently be invoked through other objects (such as [link boost_asio.reference.io_service__strand `io_service::strand`] objects) that provide additional guarantees.
+
+When asynchronous operations are composed from other asynchronous operations, all intermediate handlers should be invoked using the same method as the final handler. This is required to ensure that user-defined objects are not accessed in a way that may violate the guarantees. This hooking function ensures that the invoked method used for the final handler is accessible at each intermediate step.
+
+Implement asio\_handler\_invoke for your own handlers to specify a custom invocation strategy.
+
+This default implementation invokes the function object like so: 
+
+   function(); 
+
+
+If necessary, the default implementation makes a copy of the function object so that the non-const operator() can be used.
+
+
+[heading Example]
+  
+
+
+   class my_handler;
+
+   template <typename Function>
+   void asio_handler_invoke(Function function, my_handler* context)
+   {
+     context->strand_.dispatch(function);
+   }
+
+
+
+
+
+
+[heading Requirements]
+
+['Header: ][^boost/asio/handler_invoke_hook.hpp]
+
+['Convenience header: ][^boost/asio.hpp]
+
+
+[section:overload1 asio_handler_invoke (1 of 2 overloads)]
+
+
+Default handler invocation hook used for non-const function objects. 
+
+
+  template<
+      typename Function>
+  void asio_handler_invoke(
+      Function & function,
+      ... );
+
+
+
+[endsect]
+
+
+
+[section:overload2 asio_handler_invoke (2 of 2 overloads)]
+
+
+Default handler invocation hook used for const function objects. 
+
+
+  template<
+      typename Function>
+  void asio_handler_invoke(
+      const Function & function,
+      ... );
+
+
+
+[endsect]
+
+
+[endsect]
+
+
+[section:asio_handler_is_continuation asio_handler_is_continuation]
+
+[indexterm1 asio_handler_is_continuation] 
+Default continuation function for handlers. 
+
+
+  bool asio_handler_is_continuation(
+      ... );
+
+
+Asynchronous operations may represent a continuation of the asynchronous control flow associated with the current handler. The implementation can use this knowledge to optimise scheduling of the handler.
+
+Implement asio\_handler\_is\_continuation for your own handlers to indicate when a handler represents a continuation.
+
+The default implementation of the continuation hook returns `false`.
+
+
+[heading Example]
+  
+
+
+   class my_handler;
+
+   bool asio_handler_is_continuation(my_handler* context)
+   {
+     return true;
+   }
+
+
+
+
+
+
+[heading Requirements]
+
+['Header: ][^boost/asio/handler_continuation_hook.hpp]
+
+['Convenience header: ][^boost/asio.hpp]
+
+
+[endsect]
+
+
+[section:async_connect async_connect]
+
+[indexterm1 async_connect] 
+Asynchronously establishes a socket connection by trying each endpoint in a sequence. 
+
+      
+  template<
+      typename ``[link boost_asio.reference.Protocol Protocol]``,
+      typename ``[link boost_asio.reference.SocketService SocketService]``,
+      typename Iterator,
+      typename ``[link boost_asio.reference.ComposedConnectHandler ComposedConnectHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_connect.overload1 async_connect]``(
+      basic_socket< Protocol, SocketService > & s,
+      Iterator begin,
+      ComposedConnectHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_connect.overload1 more...]]``
+
+  template<
+      typename ``[link boost_asio.reference.Protocol Protocol]``,
+      typename ``[link boost_asio.reference.SocketService SocketService]``,
+      typename Iterator,
+      typename ``[link boost_asio.reference.ComposedConnectHandler ComposedConnectHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_connect.overload2 async_connect]``(
+      basic_socket< Protocol, SocketService > & s,
+      Iterator begin,
+      Iterator end,
+      ComposedConnectHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_connect.overload2 more...]]``
+
+  template<
+      typename ``[link boost_asio.reference.Protocol Protocol]``,
+      typename ``[link boost_asio.reference.SocketService SocketService]``,
+      typename Iterator,
+      typename ConnectCondition,
+      typename ``[link boost_asio.reference.ComposedConnectHandler ComposedConnectHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_connect.overload3 async_connect]``(
+      basic_socket< Protocol, SocketService > & s,
+      Iterator begin,
+      ConnectCondition connect_condition,
+      ComposedConnectHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_connect.overload3 more...]]``
+
+  template<
+      typename ``[link boost_asio.reference.Protocol Protocol]``,
+      typename ``[link boost_asio.reference.SocketService SocketService]``,
+      typename Iterator,
+      typename ConnectCondition,
+      typename ``[link boost_asio.reference.ComposedConnectHandler ComposedConnectHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_connect.overload4 async_connect]``(
+      basic_socket< Protocol, SocketService > & s,
+      Iterator begin,
+      Iterator end,
+      ConnectCondition connect_condition,
+      ComposedConnectHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_connect.overload4 more...]]``
+
+[heading Requirements]
+
+['Header: ][^boost/asio/connect.hpp]
+
+['Convenience header: ][^boost/asio.hpp]
+
+
+[section:overload1 async_connect (1 of 4 overloads)]
+
+
+Asynchronously establishes a socket connection by trying each endpoint in a sequence. 
+
+
+  template<
+      typename ``[link boost_asio.reference.Protocol Protocol]``,
+      typename ``[link boost_asio.reference.SocketService SocketService]``,
+      typename Iterator,
+      typename ``[link boost_asio.reference.ComposedConnectHandler ComposedConnectHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_connect(
+      basic_socket< Protocol, SocketService > & s,
+      Iterator begin,
+      ComposedConnectHandler handler);
+
+
+This function attempts to connect a socket to one of a sequence of endpoints. It does this by repeated calls to the socket's `async_connect` member function, once for each endpoint in the sequence, until a connection is successfully established.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[s][The socket to be connected. If the socket is already open, it will be closed.]]
+
+[[begin][An iterator pointing to the start of a sequence of endpoints.]]
+
+[[handler][The handler to be called when the connect operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     // Result of operation. if the sequence is empty, set to
+     // boost::asio::error::not_found. Otherwise, contains the
+     // error from the last connection attempt.
+     const boost::system::error_code& error,
+
+     // On success, an iterator denoting the successfully
+     // connected endpoint. Otherwise, the end iterator.
+     Iterator iterator
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`.]]
+
+]
+
+
+[heading Remarks]
+      
+This overload assumes that a default constructed object of type `Iterator` represents the end of the sequence. This is a valid assumption for iterator types such as `boost::asio::ip::tcp::resolver::iterator`.
+
+
+[heading Example]
+  
+
+
+   tcp::resolver r(io_service);
+   tcp::resolver::query q("host", "service");
+   tcp::socket s(io_service);
+
+   // ...
+
+   r.async_resolve(q, resolve_handler);
+
+   // ...
+
+   void resolve_handler(
+       const boost::system::error_code& ec,
+       tcp::resolver::iterator i)
+   {
+     if (!ec)
+     {
+       boost::asio::async_connect(s, i, connect_handler);
+     }
+   }
+
+   // ...
+
+   void connect_handler(
+       const boost::system::error_code& ec,
+       tcp::resolver::iterator i)
+   {
+     // ...
+   } 
+
+
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload2 async_connect (2 of 4 overloads)]
+
+
+Asynchronously establishes a socket connection by trying each endpoint in a sequence. 
+
+
+  template<
+      typename ``[link boost_asio.reference.Protocol Protocol]``,
+      typename ``[link boost_asio.reference.SocketService SocketService]``,
+      typename Iterator,
+      typename ``[link boost_asio.reference.ComposedConnectHandler ComposedConnectHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_connect(
+      basic_socket< Protocol, SocketService > & s,
+      Iterator begin,
+      Iterator end,
+      ComposedConnectHandler handler);
+
+
+This function attempts to connect a socket to one of a sequence of endpoints. It does this by repeated calls to the socket's `async_connect` member function, once for each endpoint in the sequence, until a connection is successfully established.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[s][The socket to be connected. If the socket is already open, it will be closed.]]
+
+[[begin][An iterator pointing to the start of a sequence of endpoints.]]
+
+[[end][An iterator pointing to the end of a sequence of endpoints.]]
+
+[[handler][The handler to be called when the connect operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     // Result of operation. if the sequence is empty, set to
+     // boost::asio::error::not_found. Otherwise, contains the
+     // error from the last connection attempt.
+     const boost::system::error_code& error,
+
+     // On success, an iterator denoting the successfully
+     // connected endpoint. Otherwise, the end iterator.
+     Iterator iterator
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`.]]
+
+]
+
+
+[heading Example]
+  
+
+
+   tcp::resolver r(io_service);
+   tcp::resolver::query q("host", "service");
+   tcp::socket s(io_service);
+
+   // ...
+
+   r.async_resolve(q, resolve_handler);
+
+   // ...
+
+   void resolve_handler(
+       const boost::system::error_code& ec,
+       tcp::resolver::iterator i)
+   {
+     if (!ec)
+     {
+       tcp::resolver::iterator end;
+       boost::asio::async_connect(s, i, end, connect_handler);
+     }
+   }
+
+   // ...
+
+   void connect_handler(
+       const boost::system::error_code& ec,
+       tcp::resolver::iterator i)
+   {
+     // ...
+   } 
+
+
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload3 async_connect (3 of 4 overloads)]
+
+
+Asynchronously establishes a socket connection by trying each endpoint in a sequence. 
+
+
+  template<
+      typename ``[link boost_asio.reference.Protocol Protocol]``,
+      typename ``[link boost_asio.reference.SocketService SocketService]``,
+      typename Iterator,
+      typename ConnectCondition,
+      typename ``[link boost_asio.reference.ComposedConnectHandler ComposedConnectHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_connect(
+      basic_socket< Protocol, SocketService > & s,
+      Iterator begin,
+      ConnectCondition connect_condition,
+      ComposedConnectHandler handler);
+
+
+This function attempts to connect a socket to one of a sequence of endpoints. It does this by repeated calls to the socket's `async_connect` member function, once for each endpoint in the sequence, until a connection is successfully established.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[s][The socket to be connected. If the socket is already open, it will be closed.]]
+
+[[begin][An iterator pointing to the start of a sequence of endpoints.]]
+
+[[connect_condition][A function object that is called prior to each connection attempt. The signature of the function object must be: 
+``
+   Iterator connect_condition(
+       const boost::system::error_code& ec,
+       Iterator next); 
+``
+The `ec` parameter contains the result from the most recent connect operation. Before the first connection attempt, `ec` is always set to indicate success. The `next` parameter is an iterator pointing to the next endpoint to be tried. The function object should return the next iterator, but is permitted to return a different iterator so that endpoints may be skipped. The implementation guarantees that the function object will never be called with the end iterator.]]
+
+[[handler][The handler to be called when the connect operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     // Result of operation. if the sequence is empty, set to
+     // boost::asio::error::not_found. Otherwise, contains the
+     // error from the last connection attempt.
+     const boost::system::error_code& error,
+
+     // On success, an iterator denoting the successfully
+     // connected endpoint. Otherwise, the end iterator.
+     Iterator iterator
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`.]]
+
+]
+
+
+[heading Remarks]
+      
+This overload assumes that a default constructed object of type `Iterator` represents the end of the sequence. This is a valid assumption for iterator types such as `boost::asio::ip::tcp::resolver::iterator`.
+
+
+[heading Example]
+  
+The following connect condition function object can be used to output information about the individual connection attempts: 
+
+   struct my_connect_condition
+   {
+     template <typename Iterator>
+     Iterator operator()(
+         const boost::system::error_code& ec,
+         Iterator next)
+     {
+       if (ec) std::cout << "Error: " << ec.message() << std::endl;
+       std::cout << "Trying: " << next->endpoint() << std::endl;
+       return next;
+     }
+   }; 
+
+
+It would be used with the `boost::asio::connect` function as follows: 
+
+   tcp::resolver r(io_service);
+   tcp::resolver::query q("host", "service");
+   tcp::socket s(io_service);
+
+   // ...
+
+   r.async_resolve(q, resolve_handler);
+
+   // ...
+
+   void resolve_handler(
+       const boost::system::error_code& ec,
+       tcp::resolver::iterator i)
+   {
+     if (!ec)
+     {
+       boost::asio::async_connect(s, i,
+           my_connect_condition(),
+           connect_handler);
+     }
+   }
+
+   // ...
+
+   void connect_handler(
+       const boost::system::error_code& ec,
+       tcp::resolver::iterator i)
+   {
+     if (ec)
+     {
+       // An error occurred.
+     }
+     else
+     {
+       std::cout << "Connected to: " << i->endpoint() << std::endl;
+     }
+   } 
+
+
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload4 async_connect (4 of 4 overloads)]
+
+
+Asynchronously establishes a socket connection by trying each endpoint in a sequence. 
+
+
+  template<
+      typename ``[link boost_asio.reference.Protocol Protocol]``,
+      typename ``[link boost_asio.reference.SocketService SocketService]``,
+      typename Iterator,
+      typename ConnectCondition,
+      typename ``[link boost_asio.reference.ComposedConnectHandler ComposedConnectHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_connect(
+      basic_socket< Protocol, SocketService > & s,
+      Iterator begin,
+      Iterator end,
+      ConnectCondition connect_condition,
+      ComposedConnectHandler handler);
+
+
+This function attempts to connect a socket to one of a sequence of endpoints. It does this by repeated calls to the socket's `async_connect` member function, once for each endpoint in the sequence, until a connection is successfully established.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[s][The socket to be connected. If the socket is already open, it will be closed.]]
+
+[[begin][An iterator pointing to the start of a sequence of endpoints.]]
+
+[[end][An iterator pointing to the end of a sequence of endpoints.]]
+
+[[connect_condition][A function object that is called prior to each connection attempt. The signature of the function object must be: 
+``
+   Iterator connect_condition(
+       const boost::system::error_code& ec,
+       Iterator next); 
+``
+The `ec` parameter contains the result from the most recent connect operation. Before the first connection attempt, `ec` is always set to indicate success. The `next` parameter is an iterator pointing to the next endpoint to be tried. The function object should return the next iterator, but is permitted to return a different iterator so that endpoints may be skipped. The implementation guarantees that the function object will never be called with the end iterator.]]
+
+[[handler][The handler to be called when the connect operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     // Result of operation. if the sequence is empty, set to
+     // boost::asio::error::not_found. Otherwise, contains the
+     // error from the last connection attempt.
+     const boost::system::error_code& error,
+
+     // On success, an iterator denoting the successfully
+     // connected endpoint. Otherwise, the end iterator.
+     Iterator iterator
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`.]]
+
+]
+
+
+[heading Example]
+  
+The following connect condition function object can be used to output information about the individual connection attempts: 
+
+   struct my_connect_condition
+   {
+     template <typename Iterator>
+     Iterator operator()(
+         const boost::system::error_code& ec,
+         Iterator next)
+     {
+       if (ec) std::cout << "Error: " << ec.message() << std::endl;
+       std::cout << "Trying: " << next->endpoint() << std::endl;
+       return next;
+     }
+   }; 
+
+
+It would be used with the `boost::asio::connect` function as follows: 
+
+   tcp::resolver r(io_service);
+   tcp::resolver::query q("host", "service");
+   tcp::socket s(io_service);
+
+   // ...
+
+   r.async_resolve(q, resolve_handler);
+
+   // ...
+
+   void resolve_handler(
+       const boost::system::error_code& ec,
+       tcp::resolver::iterator i)
+   {
+     if (!ec)
+     {
+       tcp::resolver::iterator end;
+       boost::asio::async_connect(s, i, end,
+           my_connect_condition(),
+           connect_handler);
+     }
+   }
+
+   // ...
+
+   void connect_handler(
+       const boost::system::error_code& ec,
+       tcp::resolver::iterator i)
+   {
+     if (ec)
+     {
+       // An error occurred.
+     }
+     else
+     {
+       std::cout << "Connected to: " << i->endpoint() << std::endl;
+     }
+   } 
+
+
+
+
+
+
+
+[endsect]
+
+
+[endsect]
+
+[section:async_read async_read]
+
+[indexterm1 async_read] 
+Start an asynchronous operation to read a certain amount of data from a stream. 
+
+      
+  template<
+      typename ``[link boost_asio.reference.AsyncReadStream AsyncReadStream]``,
+      typename ``[link boost_asio.reference.MutableBufferSequence MutableBufferSequence]``,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_read.overload1 async_read]``(
+      AsyncReadStream & s,
+      const MutableBufferSequence & buffers,
+      ReadHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_read.overload1 more...]]``
+
+  template<
+      typename ``[link boost_asio.reference.AsyncReadStream AsyncReadStream]``,
+      typename ``[link boost_asio.reference.MutableBufferSequence MutableBufferSequence]``,
+      typename CompletionCondition,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_read.overload2 async_read]``(
+      AsyncReadStream & s,
+      const MutableBufferSequence & buffers,
+      CompletionCondition completion_condition,
+      ReadHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_read.overload2 more...]]``
+
+  template<
+      typename ``[link boost_asio.reference.AsyncReadStream AsyncReadStream]``,
+      typename Allocator,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_read.overload3 async_read]``(
+      AsyncReadStream & s,
+      basic_streambuf< Allocator > & b,
+      ReadHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_read.overload3 more...]]``
+
+  template<
+      typename ``[link boost_asio.reference.AsyncReadStream AsyncReadStream]``,
+      typename Allocator,
+      typename CompletionCondition,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_read.overload4 async_read]``(
+      AsyncReadStream & s,
+      basic_streambuf< Allocator > & b,
+      CompletionCondition completion_condition,
+      ReadHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_read.overload4 more...]]``
+
+[heading Requirements]
+
+['Header: ][^boost/asio/read.hpp]
+
+['Convenience header: ][^boost/asio.hpp]
+
+
+[section:overload1 async_read (1 of 4 overloads)]
+
+
+Start an asynchronous operation to read a certain amount of data from a stream. 
+
+
+  template<
+      typename ``[link boost_asio.reference.AsyncReadStream AsyncReadStream]``,
+      typename ``[link boost_asio.reference.MutableBufferSequence MutableBufferSequence]``,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_read(
+      AsyncReadStream & s,
+      const MutableBufferSequence & buffers,
+      ReadHandler handler);
+
+
+This function is used to asynchronously read a certain number of bytes of data from a stream. The function call always returns immediately. The asynchronous operation will continue until one of the following conditions is true:
+
+
+* The supplied buffers are full. That is, the bytes transferred is equal to the sum of the buffer sizes.
+
+
+* An error occurred.
+
+This operation is implemented in terms of zero or more calls to the stream's async\_read\_some function, and is known as a ['composed operation]. The program must ensure that the stream performs no other read operations (such as async\_read, the stream's async\_read\_some function, or any other composed operations that perform reads) until this operation completes.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[s][The stream from which the data is to be read. The type must support the AsyncReadStream concept.]]
+
+[[buffers][One or more buffers into which the data will be read. The sum of the buffer sizes indicates the maximum number of bytes to read from the stream. Although the buffers object may be copied as necessary, ownership of the underlying memory blocks is retained by the caller, which must guarantee that they remain valid until the handler is called.]]
+
+[[handler][The handler to be called when the read operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     const boost::system::error_code& error, // Result of operation.
+
+     std::size_t bytes_transferred           // Number of bytes copied into the
+                                             // buffers. If an error occurred,
+                                             // this will be the  number of
+                                             // bytes successfully transferred
+                                             // prior to the error.
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`.]]
+
+]
+
+
+[heading Example]
+  
+To read into a single data buffer use the [link boost_asio.reference.buffer `buffer`]  function as follows: 
+
+   boost::asio::async_read(s, boost::asio::buffer(data, size), handler);
+
+
+See the [link boost_asio.reference.buffer `buffer`]  documentation for information on reading into multiple buffers in one go, and how to use it with arrays, boost::array or std::vector.
+
+
+[heading Remarks]
+      
+This overload is equivalent to calling: 
+
+   boost::asio::async_read(
+       s, buffers,
+       boost::asio::transfer_all(),
+       handler); 
+
+
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload2 async_read (2 of 4 overloads)]
+
+
+Start an asynchronous operation to read a certain amount of data from a stream. 
+
+
+  template<
+      typename ``[link boost_asio.reference.AsyncReadStream AsyncReadStream]``,
+      typename ``[link boost_asio.reference.MutableBufferSequence MutableBufferSequence]``,
+      typename CompletionCondition,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_read(
+      AsyncReadStream & s,
+      const MutableBufferSequence & buffers,
+      CompletionCondition completion_condition,
+      ReadHandler handler);
+
+
+This function is used to asynchronously read a certain number of bytes of data from a stream. The function call always returns immediately. The asynchronous operation will continue until one of the following conditions is true:
+
+
+* The supplied buffers are full. That is, the bytes transferred is equal to the sum of the buffer sizes.
+
+
+* The completion\_condition function object returns 0.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[s][The stream from which the data is to be read. The type must support the AsyncReadStream concept.]]
+
+[[buffers][One or more buffers into which the data will be read. The sum of the buffer sizes indicates the maximum number of bytes to read from the stream. Although the buffers object may be copied as necessary, ownership of the underlying memory blocks is retained by the caller, which must guarantee that they remain valid until the handler is called.]]
+
+[[completion_condition][The function object to be called to determine whether the read operation is complete. The signature of the function object must be: 
+``
+   std::size_t completion_condition(
+     // Result of latest async_read_some operation.
+     const boost::system::error_code& error,
+
+     // Number of bytes transferred so far.
+     std::size_t bytes_transferred
+   ); 
+``
+A return value of 0 indicates that the read operation is complete. A non-zero return value indicates the maximum number of bytes to be read on the next call to the stream's async\_read\_some function.]]
+
+[[handler][The handler to be called when the read operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     const boost::system::error_code& error, // Result of operation.
+
+     std::size_t bytes_transferred           // Number of bytes copied into the
+                                             // buffers. If an error occurred,
+                                             // this will be the  number of
+                                             // bytes successfully transferred
+                                             // prior to the error.
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`.]]
+
+]
+
+
+[heading Example]
+  
+To read into a single data buffer use the [link boost_asio.reference.buffer `buffer`]  function as follows: 
+
+   boost::asio::async_read(s,
+       boost::asio::buffer(data, size),
+       boost::asio::transfer_at_least(32),
+       handler); 
+
+
+See the [link boost_asio.reference.buffer `buffer`]  documentation for information on reading into multiple buffers in one go, and how to use it with arrays, boost::array or std::vector. 
+
+
+
+
+[endsect]
+
+
+
+[section:overload3 async_read (3 of 4 overloads)]
+
+
+Start an asynchronous operation to read a certain amount of data from a stream. 
+
+
+  template<
+      typename ``[link boost_asio.reference.AsyncReadStream AsyncReadStream]``,
+      typename Allocator,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_read(
+      AsyncReadStream & s,
+      basic_streambuf< Allocator > & b,
+      ReadHandler handler);
+
+
+This function is used to asynchronously read a certain number of bytes of data from a stream. The function call always returns immediately. The asynchronous operation will continue until one of the following conditions is true:
+
+
+* The supplied buffer is full (that is, it has reached maximum size).
+
+
+* An error occurred.
+
+This operation is implemented in terms of zero or more calls to the stream's async\_read\_some function, and is known as a ['composed operation]. The program must ensure that the stream performs no other read operations (such as async\_read, the stream's async\_read\_some function, or any other composed operations that perform reads) until this operation completes.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[s][The stream from which the data is to be read. The type must support the AsyncReadStream concept.]]
+
+[[b][A [link boost_asio.reference.basic_streambuf `basic_streambuf`] object into which the data will be read. Ownership of the streambuf is retained by the caller, which must guarantee that it remains valid until the handler is called.]]
+
+[[handler][The handler to be called when the read operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     const boost::system::error_code& error, // Result of operation.
+
+     std::size_t bytes_transferred           // Number of bytes copied into the
+                                             // buffers. If an error occurred,
+                                             // this will be the  number of
+                                             // bytes successfully transferred
+                                             // prior to the error.
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`.]]
+
+]
+
+
+[heading Remarks]
+      
+This overload is equivalent to calling: 
+
+   boost::asio::async_read(
+       s, b,
+       boost::asio::transfer_all(),
+       handler); 
+
+
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload4 async_read (4 of 4 overloads)]
+
+
+Start an asynchronous operation to read a certain amount of data from a stream. 
+
+
+  template<
+      typename ``[link boost_asio.reference.AsyncReadStream AsyncReadStream]``,
+      typename Allocator,
+      typename CompletionCondition,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_read(
+      AsyncReadStream & s,
+      basic_streambuf< Allocator > & b,
+      CompletionCondition completion_condition,
+      ReadHandler handler);
+
+
+This function is used to asynchronously read a certain number of bytes of data from a stream. The function call always returns immediately. The asynchronous operation will continue until one of the following conditions is true:
+
+
+* The supplied buffer is full (that is, it has reached maximum size).
+
+
+* The completion\_condition function object returns 0.
+
+This operation is implemented in terms of zero or more calls to the stream's async\_read\_some function, and is known as a ['composed operation]. The program must ensure that the stream performs no other read operations (such as async\_read, the stream's async\_read\_some function, or any other composed operations that perform reads) until this operation completes.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[s][The stream from which the data is to be read. The type must support the AsyncReadStream concept.]]
+
+[[b][A [link boost_asio.reference.basic_streambuf `basic_streambuf`] object into which the data will be read. Ownership of the streambuf is retained by the caller, which must guarantee that it remains valid until the handler is called.]]
+
+[[completion_condition][The function object to be called to determine whether the read operation is complete. The signature of the function object must be: 
+``
+   std::size_t completion_condition(
+     // Result of latest async_read_some operation.
+     const boost::system::error_code& error,
+
+     // Number of bytes transferred so far.
+     std::size_t bytes_transferred
+   ); 
+``
+A return value of 0 indicates that the read operation is complete. A non-zero return value indicates the maximum number of bytes to be read on the next call to the stream's async\_read\_some function.]]
+
+[[handler][The handler to be called when the read operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     const boost::system::error_code& error, // Result of operation.
+
+     std::size_t bytes_transferred           // Number of bytes copied into the
+                                             // buffers. If an error occurred,
+                                             // this will be the  number of
+                                             // bytes successfully transferred
+                                             // prior to the error.
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`. ]]
+
+]
+
+
+
+
+[endsect]
+
+
+[endsect]
+
+[section:async_read_at async_read_at]
+
+[indexterm1 async_read_at] 
+Start an asynchronous operation to read a certain amount of data at the specified offset. 
+
+      
+  template<
+      typename ``[link boost_asio.reference.AsyncRandomAccessReadDevice AsyncRandomAccessReadDevice]``,
+      typename ``[link boost_asio.reference.MutableBufferSequence MutableBufferSequence]``,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_read_at.overload1 async_read_at]``(
+      AsyncRandomAccessReadDevice & d,
+      uint64_t offset,
+      const MutableBufferSequence & buffers,
+      ReadHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_read_at.overload1 more...]]``
+
+  template<
+      typename ``[link boost_asio.reference.AsyncRandomAccessReadDevice AsyncRandomAccessReadDevice]``,
+      typename ``[link boost_asio.reference.MutableBufferSequence MutableBufferSequence]``,
+      typename CompletionCondition,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_read_at.overload2 async_read_at]``(
+      AsyncRandomAccessReadDevice & d,
+      uint64_t offset,
+      const MutableBufferSequence & buffers,
+      CompletionCondition completion_condition,
+      ReadHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_read_at.overload2 more...]]``
+
+  template<
+      typename ``[link boost_asio.reference.AsyncRandomAccessReadDevice AsyncRandomAccessReadDevice]``,
+      typename Allocator,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_read_at.overload3 async_read_at]``(
+      AsyncRandomAccessReadDevice & d,
+      uint64_t offset,
+      basic_streambuf< Allocator > & b,
+      ReadHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_read_at.overload3 more...]]``
+
+  template<
+      typename ``[link boost_asio.reference.AsyncRandomAccessReadDevice AsyncRandomAccessReadDevice]``,
+      typename Allocator,
+      typename CompletionCondition,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_read_at.overload4 async_read_at]``(
+      AsyncRandomAccessReadDevice & d,
+      uint64_t offset,
+      basic_streambuf< Allocator > & b,
+      CompletionCondition completion_condition,
+      ReadHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_read_at.overload4 more...]]``
+
+[heading Requirements]
+
+['Header: ][^boost/asio/read_at.hpp]
+
+['Convenience header: ][^boost/asio.hpp]
+
+
+[section:overload1 async_read_at (1 of 4 overloads)]
+
+
+Start an asynchronous operation to read a certain amount of data at the specified offset. 
+
+
+  template<
+      typename ``[link boost_asio.reference.AsyncRandomAccessReadDevice AsyncRandomAccessReadDevice]``,
+      typename ``[link boost_asio.reference.MutableBufferSequence MutableBufferSequence]``,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_read_at(
+      AsyncRandomAccessReadDevice & d,
+      uint64_t offset,
+      const MutableBufferSequence & buffers,
+      ReadHandler handler);
+
+
+This function is used to asynchronously read a certain number of bytes of data from a random access device at the specified offset. The function call always returns immediately. The asynchronous operation will continue until one of the following conditions is true:
+
+
+* The supplied buffers are full. That is, the bytes transferred is equal to the sum of the buffer sizes.
+
+
+* An error occurred.
+
+This operation is implemented in terms of zero or more calls to the device's async\_read\_some\_at function.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[d][The device from which the data is to be read. The type must support the AsyncRandomAccessReadDevice concept.]]
+
+[[offset][The offset at which the data will be read.]]
+
+[[buffers][One or more buffers into which the data will be read. The sum of the buffer sizes indicates the maximum number of bytes to read from the device. Although the buffers object may be copied as necessary, ownership of the underlying memory blocks is retained by the caller, which must guarantee that they remain valid until the handler is called.]]
+
+[[handler][The handler to be called when the read operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     // Result of operation.
+     const boost::system::error_code& error,
+
+     // Number of bytes copied into the buffers. If an error
+     // occurred, this will be the number of bytes successfully
+     // transferred prior to the error.
+     std::size_t bytes_transferred
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`.]]
+
+]
+
+
+[heading Example]
+  
+To read into a single data buffer use the [link boost_asio.reference.buffer `buffer`]  function as follows: 
+
+   boost::asio::async_read_at(d, 42, boost::asio::buffer(data, size), handler);
+
+
+See the [link boost_asio.reference.buffer `buffer`]  documentation for information on reading into multiple buffers in one go, and how to use it with arrays, boost::array or std::vector.
+
+
+[heading Remarks]
+      
+This overload is equivalent to calling: 
+
+   boost::asio::async_read_at(
+       d, 42, buffers,
+       boost::asio::transfer_all(),
+       handler); 
+
+
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload2 async_read_at (2 of 4 overloads)]
+
+
+Start an asynchronous operation to read a certain amount of data at the specified offset. 
+
+
+  template<
+      typename ``[link boost_asio.reference.AsyncRandomAccessReadDevice AsyncRandomAccessReadDevice]``,
+      typename ``[link boost_asio.reference.MutableBufferSequence MutableBufferSequence]``,
+      typename CompletionCondition,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_read_at(
+      AsyncRandomAccessReadDevice & d,
+      uint64_t offset,
+      const MutableBufferSequence & buffers,
+      CompletionCondition completion_condition,
+      ReadHandler handler);
+
+
+This function is used to asynchronously read a certain number of bytes of data from a random access device at the specified offset. The function call always returns immediately. The asynchronous operation will continue until one of the following conditions is true:
+
+
+* The supplied buffers are full. That is, the bytes transferred is equal to the sum of the buffer sizes.
+
+
+* The completion\_condition function object returns 0.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[d][The device from which the data is to be read. The type must support the AsyncRandomAccessReadDevice concept.]]
+
+[[offset][The offset at which the data will be read.]]
+
+[[buffers][One or more buffers into which the data will be read. The sum of the buffer sizes indicates the maximum number of bytes to read from the device. Although the buffers object may be copied as necessary, ownership of the underlying memory blocks is retained by the caller, which must guarantee that they remain valid until the handler is called.]]
+
+[[completion_condition][The function object to be called to determine whether the read operation is complete. The signature of the function object must be: 
+``
+   std::size_t completion_condition(
+     // Result of latest async_read_some_at operation.
+     const boost::system::error_code& error,
+
+     // Number of bytes transferred so far.
+     std::size_t bytes_transferred
+   ); 
+``
+A return value of 0 indicates that the read operation is complete. A non-zero return value indicates the maximum number of bytes to be read on the next call to the device's async\_read\_some\_at function.]]
+
+[[handler][The handler to be called when the read operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     // Result of operation.
+     const boost::system::error_code& error,
+
+     // Number of bytes copied into the buffers. If an error
+     // occurred, this will be the number of bytes successfully
+     // transferred prior to the error.
+     std::size_t bytes_transferred
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`.]]
+
+]
+
+
+[heading Example]
+  
+To read into a single data buffer use the [link boost_asio.reference.buffer `buffer`]  function as follows: 
+
+   boost::asio::async_read_at(d, 42,
+       boost::asio::buffer(data, size),
+       boost::asio::transfer_at_least(32),
+       handler); 
+
+
+See the [link boost_asio.reference.buffer `buffer`]  documentation for information on reading into multiple buffers in one go, and how to use it with arrays, boost::array or std::vector. 
+
+
+
+
+[endsect]
+
+
+
+[section:overload3 async_read_at (3 of 4 overloads)]
+
+
+Start an asynchronous operation to read a certain amount of data at the specified offset. 
+
+
+  template<
+      typename ``[link boost_asio.reference.AsyncRandomAccessReadDevice AsyncRandomAccessReadDevice]``,
+      typename Allocator,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_read_at(
+      AsyncRandomAccessReadDevice & d,
+      uint64_t offset,
+      basic_streambuf< Allocator > & b,
+      ReadHandler handler);
+
+
+This function is used to asynchronously read a certain number of bytes of data from a random access device at the specified offset. The function call always returns immediately. The asynchronous operation will continue until one of the following conditions is true:
+
+
+* An error occurred.
+
+This operation is implemented in terms of zero or more calls to the device's async\_read\_some\_at function.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[d][The device from which the data is to be read. The type must support the AsyncRandomAccessReadDevice concept.]]
+
+[[offset][The offset at which the data will be read.]]
+
+[[b][A [link boost_asio.reference.basic_streambuf `basic_streambuf`] object into which the data will be read. Ownership of the streambuf is retained by the caller, which must guarantee that it remains valid until the handler is called.]]
+
+[[handler][The handler to be called when the read operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     // Result of operation.
+     const boost::system::error_code& error,
+
+     // Number of bytes copied into the buffers. If an error
+     // occurred, this will be the number of bytes successfully
+     // transferred prior to the error.
+     std::size_t bytes_transferred
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`.]]
+
+]
+
+
+[heading Remarks]
+      
+This overload is equivalent to calling: 
+
+   boost::asio::async_read_at(
+       d, 42, b,
+       boost::asio::transfer_all(),
+       handler); 
+
+
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload4 async_read_at (4 of 4 overloads)]
+
+
+Start an asynchronous operation to read a certain amount of data at the specified offset. 
+
+
+  template<
+      typename ``[link boost_asio.reference.AsyncRandomAccessReadDevice AsyncRandomAccessReadDevice]``,
+      typename Allocator,
+      typename CompletionCondition,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_read_at(
+      AsyncRandomAccessReadDevice & d,
+      uint64_t offset,
+      basic_streambuf< Allocator > & b,
+      CompletionCondition completion_condition,
+      ReadHandler handler);
+
+
+This function is used to asynchronously read a certain number of bytes of data from a random access device at the specified offset. The function call always returns immediately. The asynchronous operation will continue until one of the following conditions is true:
+
+
+* The completion\_condition function object returns 0.
+
+This operation is implemented in terms of zero or more calls to the device's async\_read\_some\_at function.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[d][The device from which the data is to be read. The type must support the AsyncRandomAccessReadDevice concept.]]
+
+[[offset][The offset at which the data will be read.]]
+
+[[b][A [link boost_asio.reference.basic_streambuf `basic_streambuf`] object into which the data will be read. Ownership of the streambuf is retained by the caller, which must guarantee that it remains valid until the handler is called.]]
+
+[[completion_condition][The function object to be called to determine whether the read operation is complete. The signature of the function object must be: 
+``
+   std::size_t completion_condition(
+     // Result of latest async_read_some_at operation.
+     const boost::system::error_code& error,
+
+     // Number of bytes transferred so far.
+     std::size_t bytes_transferred
+   ); 
+``
+A return value of 0 indicates that the read operation is complete. A non-zero return value indicates the maximum number of bytes to be read on the next call to the device's async\_read\_some\_at function.]]
+
+[[handler][The handler to be called when the read operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     // Result of operation.
+     const boost::system::error_code& error,
+
+     // Number of bytes copied into the buffers. If an error
+     // occurred, this will be the number of bytes successfully
+     // transferred prior to the error.
+     std::size_t bytes_transferred
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`. ]]
+
+]
+
+
+
+
+[endsect]
+
+
+[endsect]
+
+[section:async_read_until async_read_until]
+
+[indexterm1 async_read_until] 
+Start an asynchronous operation to read data into a streambuf until it contains a delimiter, matches a regular expression, or a function object indicates a match. 
+
+      
+  template<
+      typename ``[link boost_asio.reference.AsyncReadStream AsyncReadStream]``,
+      typename Allocator,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_read_until.overload1 async_read_until]``(
+      AsyncReadStream & s,
+      boost::asio::basic_streambuf< Allocator > & b,
+      char delim,
+      ReadHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_read_until.overload1 more...]]``
+
+  template<
+      typename ``[link boost_asio.reference.AsyncReadStream AsyncReadStream]``,
+      typename Allocator,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_read_until.overload2 async_read_until]``(
+      AsyncReadStream & s,
+      boost::asio::basic_streambuf< Allocator > & b,
+      const std::string & delim,
+      ReadHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_read_until.overload2 more...]]``
+
+  template<
+      typename ``[link boost_asio.reference.AsyncReadStream AsyncReadStream]``,
+      typename Allocator,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_read_until.overload3 async_read_until]``(
+      AsyncReadStream & s,
+      boost::asio::basic_streambuf< Allocator > & b,
+      const boost::regex & expr,
+      ReadHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_read_until.overload3 more...]]``
+
+  template<
+      typename ``[link boost_asio.reference.AsyncReadStream AsyncReadStream]``,
+      typename Allocator,
+      typename MatchCondition,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_read_until.overload4 async_read_until]``(
+      AsyncReadStream & s,
+      boost::asio::basic_streambuf< Allocator > & b,
+      MatchCondition match_condition,
+      ReadHandler handler,
+      typename enable_if< is_match_condition< MatchCondition >::value >::type *  = 0);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_read_until.overload4 more...]]``
+
+[heading Requirements]
+
+['Header: ][^boost/asio/read_until.hpp]
+
+['Convenience header: ][^boost/asio.hpp]
+
+
+[section:overload1 async_read_until (1 of 4 overloads)]
+
+
+Start an asynchronous operation to read data into a streambuf until it contains a specified delimiter. 
+
+
+  template<
+      typename ``[link boost_asio.reference.AsyncReadStream AsyncReadStream]``,
+      typename Allocator,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_read_until(
+      AsyncReadStream & s,
+      boost::asio::basic_streambuf< Allocator > & b,
+      char delim,
+      ReadHandler handler);
+
+
+This function is used to asynchronously read data into the specified streambuf until the streambuf's get area contains the specified delimiter. The function call always returns immediately. The asynchronous operation will continue until one of the following conditions is true:
+
+
+* The get area of the streambuf contains the specified delimiter.
+
+
+* An error occurred.
+
+This operation is implemented in terms of zero or more calls to the stream's async\_read\_some function, and is known as a ['composed operation]. If the streambuf's get area already contains the delimiter, this asynchronous operation completes immediately. The program must ensure that the stream performs no other read operations (such as async\_read, async\_read\_until, the stream's async\_read\_some function, or any other composed operations that perform reads) until this operation completes.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[s][The stream from which the data is to be read. The type must support the AsyncReadStream concept.]]
+
+[[b][A streambuf object into which the data will be read. Ownership of the streambuf is retained by the caller, which must guarantee that it remains valid until the handler is called.]]
+
+[[delim][The delimiter character.]]
+
+[[handler][The handler to be called when the read operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     // Result of operation.
+     const boost::system::error_code& error,
+
+     // The number of bytes in the streambuf's get
+     // area up to and including the delimiter.
+     // 0 if an error occurred.
+     std::size_t bytes_transferred
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`.]]
+
+]
+
+
+[heading Remarks]
+      
+After a successful async\_read\_until operation, the streambuf may contain additional data beyond the delimiter. An application will typically leave that data in the streambuf for a subsequent async\_read\_until operation to examine.
+
+
+[heading Example]
+  
+To asynchronously read data into a streambuf until a newline is encountered: 
+
+   boost::asio::streambuf b;
+   ...
+   void handler(const boost::system::error_code& e, std::size_t size)
+   {
+     if (!e)
+     {
+       std::istream is(&b);
+       std::string line;
+       std::getline(is, line);
+       ...
+     }
+   }
+   ...
+   boost::asio::async_read_until(s, b, '\n', handler); 
+
+
+After the `async_read_until` operation completes successfully, the buffer `b` contains the delimiter: 
+
+   { 'a', 'b', ..., 'c', '\n', 'd', 'e', ... } 
+
+
+The call to `std::getline` then extracts the data up to and including the delimiter, so that the string `line` contains: 
+
+   { 'a', 'b', ..., 'c', '\n' } 
+
+
+The remaining data is left in the buffer `b` as follows: 
+
+   { 'd', 'e', ... } 
+
+
+This data may be the start of a new line, to be extracted by a subsequent `async_read_until` operation. 
+
+
+
+
+[endsect]
+
+
+
+[section:overload2 async_read_until (2 of 4 overloads)]
+
+
+Start an asynchronous operation to read data into a streambuf until it contains a specified delimiter. 
+
+
+  template<
+      typename ``[link boost_asio.reference.AsyncReadStream AsyncReadStream]``,
+      typename Allocator,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_read_until(
+      AsyncReadStream & s,
+      boost::asio::basic_streambuf< Allocator > & b,
+      const std::string & delim,
+      ReadHandler handler);
+
+
+This function is used to asynchronously read data into the specified streambuf until the streambuf's get area contains the specified delimiter. The function call always returns immediately. The asynchronous operation will continue until one of the following conditions is true:
+
+
+* The get area of the streambuf contains the specified delimiter.
+
+
+* An error occurred.
+
+This operation is implemented in terms of zero or more calls to the stream's async\_read\_some function, and is known as a ['composed operation]. If the streambuf's get area already contains the delimiter, this asynchronous operation completes immediately. The program must ensure that the stream performs no other read operations (such as async\_read, async\_read\_until, the stream's async\_read\_some function, or any other composed operations that perform reads) until this operation completes.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[s][The stream from which the data is to be read. The type must support the AsyncReadStream concept.]]
+
+[[b][A streambuf object into which the data will be read. Ownership of the streambuf is retained by the caller, which must guarantee that it remains valid until the handler is called.]]
+
+[[delim][The delimiter string.]]
+
+[[handler][The handler to be called when the read operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     // Result of operation.
+     const boost::system::error_code& error,
+
+     // The number of bytes in the streambuf's get
+     // area up to and including the delimiter.
+     // 0 if an error occurred.
+     std::size_t bytes_transferred
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`.]]
+
+]
+
+
+[heading Remarks]
+      
+After a successful async\_read\_until operation, the streambuf may contain additional data beyond the delimiter. An application will typically leave that data in the streambuf for a subsequent async\_read\_until operation to examine.
+
+
+[heading Example]
+  
+To asynchronously read data into a streambuf until a newline is encountered: 
+
+   boost::asio::streambuf b;
+   ...
+   void handler(const boost::system::error_code& e, std::size_t size)
+   {
+     if (!e)
+     {
+       std::istream is(&b);
+       std::string line;
+       std::getline(is, line);
+       ...
+     }
+   }
+   ...
+   boost::asio::async_read_until(s, b, "\r\n", handler); 
+
+
+After the `async_read_until` operation completes successfully, the buffer `b` contains the delimiter: 
+
+   { 'a', 'b', ..., 'c', '\r', '\n', 'd', 'e', ... } 
+
+
+The call to `std::getline` then extracts the data up to and including the delimiter, so that the string `line` contains: 
+
+   { 'a', 'b', ..., 'c', '\r', '\n' } 
+
+
+The remaining data is left in the buffer `b` as follows: 
+
+   { 'd', 'e', ... } 
+
+
+This data may be the start of a new line, to be extracted by a subsequent `async_read_until` operation. 
+
+
+
+
+[endsect]
+
+
+
+[section:overload3 async_read_until (3 of 4 overloads)]
+
+
+Start an asynchronous operation to read data into a streambuf until some part of its data matches a regular expression. 
+
+
+  template<
+      typename ``[link boost_asio.reference.AsyncReadStream AsyncReadStream]``,
+      typename Allocator,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_read_until(
+      AsyncReadStream & s,
+      boost::asio::basic_streambuf< Allocator > & b,
+      const boost::regex & expr,
+      ReadHandler handler);
+
+
+This function is used to asynchronously read data into the specified streambuf until the streambuf's get area contains some data that matches a regular expression. The function call always returns immediately. The asynchronous operation will continue until one of the following conditions is true:
+
+
+* A substring of the streambuf's get area matches the regular expression.
+
+
+* An error occurred.
+
+This operation is implemented in terms of zero or more calls to the stream's async\_read\_some function, and is known as a ['composed operation]. If the streambuf's get area already contains data that matches the regular expression, this asynchronous operation completes immediately. The program must ensure that the stream performs no other read operations (such as async\_read, async\_read\_until, the stream's async\_read\_some function, or any other composed operations that perform reads) until this operation completes.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[s][The stream from which the data is to be read. The type must support the AsyncReadStream concept.]]
+
+[[b][A streambuf object into which the data will be read. Ownership of the streambuf is retained by the caller, which must guarantee that it remains valid until the handler is called.]]
+
+[[expr][The regular expression.]]
+
+[[handler][The handler to be called when the read operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     // Result of operation.
+     const boost::system::error_code& error,
+
+     // The number of bytes in the streambuf's get
+     // area up to and including the substring
+     // that matches the regular. expression.
+     // 0 if an error occurred.
+     std::size_t bytes_transferred
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`.]]
+
+]
+
+
+[heading Remarks]
+      
+After a successful async\_read\_until operation, the streambuf may contain additional data beyond that which matched the regular expression. An application will typically leave that data in the streambuf for a subsequent async\_read\_until operation to examine.
+
+
+[heading Example]
+  
+To asynchronously read data into a streambuf until a CR-LF sequence is encountered: 
+
+   boost::asio::streambuf b;
+   ...
+   void handler(const boost::system::error_code& e, std::size_t size)
+   {
+     if (!e)
+     {
+       std::istream is(&b);
+       std::string line;
+       std::getline(is, line);
+       ...
+     }
+   }
+   ...
+   boost::asio::async_read_until(s, b, boost::regex("\r\n"), handler); 
+
+
+After the `async_read_until` operation completes successfully, the buffer `b` contains the data which matched the regular expression: 
+
+   { 'a', 'b', ..., 'c', '\r', '\n', 'd', 'e', ... } 
+
+
+The call to `std::getline` then extracts the data up to and including the match, so that the string `line` contains: 
+
+   { 'a', 'b', ..., 'c', '\r', '\n' } 
+
+
+The remaining data is left in the buffer `b` as follows: 
+
+   { 'd', 'e', ... } 
+
+
+This data may be the start of a new line, to be extracted by a subsequent `async_read_until` operation. 
+
+
+
+
+[endsect]
+
+
+
+[section:overload4 async_read_until (4 of 4 overloads)]
+
+
+Start an asynchronous operation to read data into a streambuf until a function object indicates a match. 
+
+
+  template<
+      typename ``[link boost_asio.reference.AsyncReadStream AsyncReadStream]``,
+      typename Allocator,
+      typename MatchCondition,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_read_until(
+      AsyncReadStream & s,
+      boost::asio::basic_streambuf< Allocator > & b,
+      MatchCondition match_condition,
+      ReadHandler handler,
+      typename enable_if< is_match_condition< MatchCondition >::value >::type *  = 0);
+
+
+This function is used to asynchronously read data into the specified streambuf until a user-defined match condition function object, when applied to the data contained in the streambuf, indicates a successful match. The function call always returns immediately. The asynchronous operation will continue until one of the following conditions is true:
+
+
+* The match condition function object returns a std::pair where the second element evaluates to true.
+
+
+* An error occurred.
+
+This operation is implemented in terms of zero or more calls to the stream's async\_read\_some function, and is known as a ['composed operation]. If the match condition function object already indicates a match, this asynchronous operation completes immediately. The program must ensure that the stream performs no other read operations (such as async\_read, async\_read\_until, the stream's async\_read\_some function, or any other composed operations that perform reads) until this operation completes.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[s][The stream from which the data is to be read. The type must support the AsyncReadStream concept.]]
+
+[[b][A streambuf object into which the data will be read.]]
+
+[[match_condition][The function object to be called to determine whether a match exists. The signature of the function object must be: 
+``
+   pair<iterator, bool> match_condition(iterator begin, iterator end);
+``
+where `iterator` represents the type: 
+``
+   buffers_iterator<basic_streambuf<Allocator>::const_buffers_type>
+``
+The iterator parameters `begin` and `end` define the range of bytes to be scanned to determine whether there is a match. The `first` member of the return value is an iterator marking one-past-the-end of the bytes that have been consumed by the match function. This iterator is used to calculate the `begin` parameter for any subsequent invocation of the match condition. The `second` member of the return value is true if a match has been found, false otherwise.]]
+
+[[handler][The handler to be called when the read operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     // Result of operation.
+     const boost::system::error_code& error,
+
+     // The number of bytes in the streambuf's get
+     // area that have been fully consumed by the
+     // match function. O if an error occurred.
+     std::size_t bytes_transferred
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`.]]
+
+]
+
+
+[heading Remarks]
+      
+After a successful async\_read\_until operation, the streambuf may contain additional data beyond that which matched the function object. An application will typically leave that data in the streambuf for a subsequent async\_read\_until operation to examine.
+
+The default implementation of the `is_match_condition` type trait evaluates to true for function pointers and function objects with a `result_type` typedef. It must be specialised for other user-defined function objects.
+
+
+[heading Examples]
+  
+To asynchronously read data into a streambuf until whitespace is encountered: 
+
+   typedef boost::asio::buffers_iterator<
+       boost::asio::streambuf::const_buffers_type> iterator;
+
+   std::pair<iterator, bool>
+   match_whitespace(iterator begin, iterator end)
+   {
+     iterator i = begin;
+     while (i != end)
+       if (std::isspace(*i++))
+         return std::make_pair(i, true);
+     return std::make_pair(i, false);
+   }
+   ...
+   void handler(const boost::system::error_code& e, std::size_t size);
+   ...
+   boost::asio::streambuf b;
+   boost::asio::async_read_until(s, b, match_whitespace, handler);
+
+
+
+
+To asynchronously read data into a streambuf until a matching character is found: 
+
+   class match_char
+   {
+   public:
+     explicit match_char(char c) : c_(c) {}
+
+     template <typename Iterator>
+     std::pair<Iterator, bool> operator()(
+         Iterator begin, Iterator end) const
+     {
+       Iterator i = begin;
+       while (i != end)
+         if (c_ == *i++)
+           return std::make_pair(i, true);
+       return std::make_pair(i, false);
+     }
+
+   private:
+     char c_;
+   };
+
+   namespace asio {
+     template <> struct is_match_condition<match_char>
+       : public boost::true_type {};
+   } // namespace asio
+   ...
+   void handler(const boost::system::error_code& e, std::size_t size);
+   ...
+   boost::asio::streambuf b;
+   boost::asio::async_read_until(s, b, match_char('a'), handler);
+
+
+
+
+
+[endsect]
+
+
+[endsect]
+
+[section:async_result async_result]
+
+
+An interface for customising the behaviour of an initiating function. 
+
+
+  template<
+      typename ``[link boost_asio.reference.Handler Handler]``>
+  class async_result
+
+
+[heading Types]
+[table
+  [[Name][Description]]
+
+  [
+
+    [[link boost_asio.reference.async_result.type [*type]]]
+    [The return type of the initiating function. ]
+  
+  ]
+
+]
+
+[heading Member Functions]
+[table
+  [[Name][Description]]
+
+  [
+    [[link boost_asio.reference.async_result.async_result [*async_result]]]
+    [Construct an async result from a given handler. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.async_result.get [*get]]]
+    [Obtain the value to be returned from the initiating function. ]
+  ]
+  
+]
+
+This template may be specialised for user-defined handler types. 
+
+[heading Requirements]
+
+['Header: ][^boost/asio/async_result.hpp]
+
+['Convenience header: ][^boost/asio.hpp]
+
+
+[section:async_result async_result::async_result]
+
+[indexterm2 async_result..async_result] 
+Construct an async result from a given handler. 
+
+
+  async_result(
+      Handler & );
+
+
+When using a specalised [link boost_asio.reference.async_result `async_result`], the constructor has an opportunity to initialise some state associated with the handler, which is then returned from the initiating function. 
+
+
+[endsect]
+
+
+
+[section:get async_result::get]
+
+[indexterm2 get..async_result] 
+Obtain the value to be returned from the initiating function. 
+
+
+  type get();
+
+
+
+[endsect]
+
+
+
+[section:type async_result::type]
+
+[indexterm2 type..async_result] 
+The return type of the initiating function. 
+
+
+  typedef void type;
+
+
+
+[heading Requirements]
+
+['Header: ][^boost/asio/async_result.hpp]
+
+['Convenience header: ][^boost/asio.hpp]
+
+
+[endsect]
+
+
+
+[endsect]
+
+[section:async_write async_write]
+
+[indexterm1 async_write] 
+Start an asynchronous operation to write a certain amount of data to a stream. 
+
+      
+  template<
+      typename ``[link boost_asio.reference.AsyncWriteStream AsyncWriteStream]``,
+      typename ``[link boost_asio.reference.ConstBufferSequence ConstBufferSequence]``,
+      typename ``[link boost_asio.reference.WriteHandler WriteHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_write.overload1 async_write]``(
+      AsyncWriteStream & s,
+      const ConstBufferSequence & buffers,
+      WriteHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_write.overload1 more...]]``
+
+  template<
+      typename ``[link boost_asio.reference.AsyncWriteStream AsyncWriteStream]``,
+      typename ``[link boost_asio.reference.ConstBufferSequence ConstBufferSequence]``,
+      typename CompletionCondition,
+      typename ``[link boost_asio.reference.WriteHandler WriteHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_write.overload2 async_write]``(
+      AsyncWriteStream & s,
+      const ConstBufferSequence & buffers,
+      CompletionCondition completion_condition,
+      WriteHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_write.overload2 more...]]``
+
+  template<
+      typename ``[link boost_asio.reference.AsyncWriteStream AsyncWriteStream]``,
+      typename Allocator,
+      typename ``[link boost_asio.reference.WriteHandler WriteHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_write.overload3 async_write]``(
+      AsyncWriteStream & s,
+      basic_streambuf< Allocator > & b,
+      WriteHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_write.overload3 more...]]``
+
+  template<
+      typename ``[link boost_asio.reference.AsyncWriteStream AsyncWriteStream]``,
+      typename Allocator,
+      typename CompletionCondition,
+      typename ``[link boost_asio.reference.WriteHandler WriteHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_write.overload4 async_write]``(
+      AsyncWriteStream & s,
+      basic_streambuf< Allocator > & b,
+      CompletionCondition completion_condition,
+      WriteHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_write.overload4 more...]]``
+
+[heading Requirements]
+
+['Header: ][^boost/asio/write.hpp]
+
+['Convenience header: ][^boost/asio.hpp]
+
+
+[section:overload1 async_write (1 of 4 overloads)]
+
+
+Start an asynchronous operation to write all of the supplied data to a stream. 
+
+
+  template<
+      typename ``[link boost_asio.reference.AsyncWriteStream AsyncWriteStream]``,
+      typename ``[link boost_asio.reference.ConstBufferSequence ConstBufferSequence]``,
+      typename ``[link boost_asio.reference.WriteHandler WriteHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_write(
+      AsyncWriteStream & s,
+      const ConstBufferSequence & buffers,
+      WriteHandler handler);
+
+
+This function is used to asynchronously write a certain number of bytes of data to a stream. The function call always returns immediately. The asynchronous operation will continue until one of the following conditions is true:
+
+
+* All of the data in the supplied buffers has been written. That is, the bytes transferred is equal to the sum of the buffer sizes.
+
+
+* An error occurred.
+
+This operation is implemented in terms of zero or more calls to the stream's async\_write\_some function, and is known as a ['composed operation]. The program must ensure that the stream performs no other write operations (such as async\_write, the stream's async\_write\_some function, or any other composed operations that perform writes) until this operation completes.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[s][The stream to which the data is to be written. The type must support the AsyncWriteStream concept.]]
+
+[[buffers][One or more buffers containing the data to be written. Although the buffers object may be copied as necessary, ownership of the underlying memory blocks is retained by the caller, which must guarantee that they remain valid until the handler is called.]]
+
+[[handler][The handler to be called when the write operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     const boost::system::error_code& error, // Result of operation.
+
+     std::size_t bytes_transferred           // Number of bytes written from the
+                                             // buffers. If an error occurred,
+                                             // this will be less than the sum
+                                             // of the buffer sizes.
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`.]]
+
+]
+
+
+[heading Example]
+  
+To write a single data buffer use the [link boost_asio.reference.buffer `buffer`]  function as follows: 
+
+   boost::asio::async_write(s, boost::asio::buffer(data, size), handler);
+
+
+See the [link boost_asio.reference.buffer `buffer`]  documentation for information on writing multiple buffers in one go, and how to use it with arrays, boost::array or std::vector. 
+
+
+
+
+[endsect]
+
+
+
+[section:overload2 async_write (2 of 4 overloads)]
+
+
+Start an asynchronous operation to write a certain amount of data to a stream. 
+
+
+  template<
+      typename ``[link boost_asio.reference.AsyncWriteStream AsyncWriteStream]``,
+      typename ``[link boost_asio.reference.ConstBufferSequence ConstBufferSequence]``,
+      typename CompletionCondition,
+      typename ``[link boost_asio.reference.WriteHandler WriteHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_write(
+      AsyncWriteStream & s,
+      const ConstBufferSequence & buffers,
+      CompletionCondition completion_condition,
+      WriteHandler handler);
+
+
+This function is used to asynchronously write a certain number of bytes of data to a stream. The function call always returns immediately. The asynchronous operation will continue until one of the following conditions is true:
+
+
+* All of the data in the supplied buffers has been written. That is, the bytes transferred is equal to the sum of the buffer sizes.
+
+
+* The completion\_condition function object returns 0.
+
+This operation is implemented in terms of zero or more calls to the stream's async\_write\_some function, and is known as a ['composed operation]. The program must ensure that the stream performs no other write operations (such as async\_write, the stream's async\_write\_some function, or any other composed operations that perform writes) until this operation completes.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[s][The stream to which the data is to be written. The type must support the AsyncWriteStream concept.]]
+
+[[buffers][One or more buffers containing the data to be written. Although the buffers object may be copied as necessary, ownership of the underlying memory blocks is retained by the caller, which must guarantee that they remain valid until the handler is called.]]
+
+[[completion_condition][The function object to be called to determine whether the write operation is complete. The signature of the function object must be: 
+``
+   std::size_t completion_condition(
+     // Result of latest async_write_some operation.
+     const boost::system::error_code& error,
+
+     // Number of bytes transferred so far.
+     std::size_t bytes_transferred
+   ); 
+``
+A return value of 0 indicates that the write operation is complete. A non-zero return value indicates the maximum number of bytes to be written on the next call to the stream's async\_write\_some function.]]
+
+[[handler][The handler to be called when the write operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     const boost::system::error_code& error, // Result of operation.
+
+     std::size_t bytes_transferred           // Number of bytes written from the
+                                             // buffers. If an error occurred,
+                                             // this will be less than the sum
+                                             // of the buffer sizes.
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`.]]
+
+]
+
+
+[heading Example]
+  
+To write a single data buffer use the [link boost_asio.reference.buffer `buffer`]  function as follows: 
+
+   boost::asio::async_write(s,
+       boost::asio::buffer(data, size),
+       boost::asio::transfer_at_least(32),
+       handler); 
+
+
+See the [link boost_asio.reference.buffer `buffer`]  documentation for information on writing multiple buffers in one go, and how to use it with arrays, boost::array or std::vector. 
+
+
+
+
+[endsect]
+
+
+
+[section:overload3 async_write (3 of 4 overloads)]
+
+
+Start an asynchronous operation to write all of the supplied data to a stream. 
+
+
+  template<
+      typename ``[link boost_asio.reference.AsyncWriteStream AsyncWriteStream]``,
+      typename Allocator,
+      typename ``[link boost_asio.reference.WriteHandler WriteHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_write(
+      AsyncWriteStream & s,
+      basic_streambuf< Allocator > & b,
+      WriteHandler handler);
+
+
+This function is used to asynchronously write a certain number of bytes of data to a stream. The function call always returns immediately. The asynchronous operation will continue until one of the following conditions is true:
+
+
+* All of the data in the supplied [link boost_asio.reference.basic_streambuf `basic_streambuf`] has been written.
+
+
+* An error occurred.
+
+This operation is implemented in terms of zero or more calls to the stream's async\_write\_some function, and is known as a ['composed operation]. The program must ensure that the stream performs no other write operations (such as async\_write, the stream's async\_write\_some function, or any other composed operations that perform writes) until this operation completes.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[s][The stream to which the data is to be written. The type must support the AsyncWriteStream concept.]]
+
+[[b][A [link boost_asio.reference.basic_streambuf `basic_streambuf`] object from which data will be written. Ownership of the streambuf is retained by the caller, which must guarantee that it remains valid until the handler is called.]]
+
+[[handler][The handler to be called when the write operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     const boost::system::error_code& error, // Result of operation.
+
+     std::size_t bytes_transferred           // Number of bytes written from the
+                                             // buffers. If an error occurred,
+                                             // this will be less than the sum
+                                             // of the buffer sizes.
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`. ]]
+
+]
+
+
+
+
+[endsect]
+
+
+
+[section:overload4 async_write (4 of 4 overloads)]
+
+
+Start an asynchronous operation to write a certain amount of data to a stream. 
+
+
+  template<
+      typename ``[link boost_asio.reference.AsyncWriteStream AsyncWriteStream]``,
+      typename Allocator,
+      typename CompletionCondition,
+      typename ``[link boost_asio.reference.WriteHandler WriteHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_write(
+      AsyncWriteStream & s,
+      basic_streambuf< Allocator > & b,
+      CompletionCondition completion_condition,
+      WriteHandler handler);
+
+
+This function is used to asynchronously write a certain number of bytes of data to a stream. The function call always returns immediately. The asynchronous operation will continue until one of the following conditions is true:
+
+
+* All of the data in the supplied [link boost_asio.reference.basic_streambuf `basic_streambuf`] has been written.
+
+
+* The completion\_condition function object returns 0.
+
+This operation is implemented in terms of zero or more calls to the stream's async\_write\_some function, and is known as a ['composed operation]. The program must ensure that the stream performs no other write operations (such as async\_write, the stream's async\_write\_some function, or any other composed operations that perform writes) until this operation completes.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[s][The stream to which the data is to be written. The type must support the AsyncWriteStream concept.]]
+
+[[b][A [link boost_asio.reference.basic_streambuf `basic_streambuf`] object from which data will be written. Ownership of the streambuf is retained by the caller, which must guarantee that it remains valid until the handler is called.]]
+
+[[completion_condition][The function object to be called to determine whether the write operation is complete. The signature of the function object must be: 
+``
+   std::size_t completion_condition(
+     // Result of latest async_write_some operation.
+     const boost::system::error_code& error,
+
+     // Number of bytes transferred so far.
+     std::size_t bytes_transferred
+   ); 
+``
+A return value of 0 indicates that the write operation is complete. A non-zero return value indicates the maximum number of bytes to be written on the next call to the stream's async\_write\_some function.]]
+
+[[handler][The handler to be called when the write operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     const boost::system::error_code& error, // Result of operation.
+
+     std::size_t bytes_transferred           // Number of bytes written from the
+                                             // buffers. If an error occurred,
+                                             // this will be less than the sum
+                                             // of the buffer sizes.
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`. ]]
+
+]
+
+
+
+
+[endsect]
+
+
+[endsect]
+
+[section:async_write_at async_write_at]
+
+[indexterm1 async_write_at] 
+Start an asynchronous operation to write a certain amount of data at the specified offset. 
+
+      
+  template<
+      typename ``[link boost_asio.reference.AsyncRandomAccessWriteDevice AsyncRandomAccessWriteDevice]``,
+      typename ``[link boost_asio.reference.ConstBufferSequence ConstBufferSequence]``,
+      typename ``[link boost_asio.reference.WriteHandler WriteHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_write_at.overload1 async_write_at]``(
+      AsyncRandomAccessWriteDevice & d,
+      uint64_t offset,
+      const ConstBufferSequence & buffers,
+      WriteHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_write_at.overload1 more...]]``
+
+  template<
+      typename ``[link boost_asio.reference.AsyncRandomAccessWriteDevice AsyncRandomAccessWriteDevice]``,
+      typename ``[link boost_asio.reference.ConstBufferSequence ConstBufferSequence]``,
+      typename CompletionCondition,
+      typename ``[link boost_asio.reference.WriteHandler WriteHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_write_at.overload2 async_write_at]``(
+      AsyncRandomAccessWriteDevice & d,
+      uint64_t offset,
+      const ConstBufferSequence & buffers,
+      CompletionCondition completion_condition,
+      WriteHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_write_at.overload2 more...]]``
+
+  template<
+      typename ``[link boost_asio.reference.AsyncRandomAccessWriteDevice AsyncRandomAccessWriteDevice]``,
+      typename Allocator,
+      typename ``[link boost_asio.reference.WriteHandler WriteHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_write_at.overload3 async_write_at]``(
+      AsyncRandomAccessWriteDevice & d,
+      uint64_t offset,
+      basic_streambuf< Allocator > & b,
+      WriteHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_write_at.overload3 more...]]``
+
+  template<
+      typename ``[link boost_asio.reference.AsyncRandomAccessWriteDevice AsyncRandomAccessWriteDevice]``,
+      typename Allocator,
+      typename CompletionCondition,
+      typename ``[link boost_asio.reference.WriteHandler WriteHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.async_write_at.overload4 async_write_at]``(
+      AsyncRandomAccessWriteDevice & d,
+      uint64_t offset,
+      basic_streambuf< Allocator > & b,
+      CompletionCondition completion_condition,
+      WriteHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.async_write_at.overload4 more...]]``
+
+[heading Requirements]
+
+['Header: ][^boost/asio/write_at.hpp]
+
+['Convenience header: ][^boost/asio.hpp]
+
+
+[section:overload1 async_write_at (1 of 4 overloads)]
+
+
+Start an asynchronous operation to write all of the supplied data at the specified offset. 
+
+
+  template<
+      typename ``[link boost_asio.reference.AsyncRandomAccessWriteDevice AsyncRandomAccessWriteDevice]``,
+      typename ``[link boost_asio.reference.ConstBufferSequence ConstBufferSequence]``,
+      typename ``[link boost_asio.reference.WriteHandler WriteHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_write_at(
+      AsyncRandomAccessWriteDevice & d,
+      uint64_t offset,
+      const ConstBufferSequence & buffers,
+      WriteHandler handler);
+
+
+This function is used to asynchronously write a certain number of bytes of data to a random access device at a specified offset. The function call always returns immediately. The asynchronous operation will continue until one of the following conditions is true:
+
+
+* All of the data in the supplied buffers has been written. That is, the bytes transferred is equal to the sum of the buffer sizes.
+
+
+* An error occurred.
+
+This operation is implemented in terms of zero or more calls to the device's async\_write\_some\_at function, and is known as a ['composed operation]. The program must ensure that the device performs no ['overlapping] write operations (such as async\_write\_at, the device's async\_write\_some\_at function, or any other composed operations that perform writes) until this operation completes. Operations are overlapping if the regions defined by their offsets, and the numbers of bytes to write, intersect.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[d][The device to which the data is to be written. The type must support the AsyncRandomAccessWriteDevice concept.]]
+
+[[offset][The offset at which the data will be written.]]
+
+[[buffers][One or more buffers containing the data to be written. Although the buffers object may be copied as necessary, ownership of the underlying memory blocks is retained by the caller, which must guarantee that they remain valid until the handler is called.]]
+
+[[handler][The handler to be called when the write operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     // Result of operation.
+     const boost::system::error_code& error,
+
+     // Number of bytes written from the buffers. If an error
+     // occurred, this will be less than the sum of the buffer sizes.
+     std::size_t bytes_transferred
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`.]]
+
+]
+
+
+[heading Example]
+  
+To write a single data buffer use the [link boost_asio.reference.buffer `buffer`]  function as follows: 
+
+   boost::asio::async_write_at(d, 42, boost::asio::buffer(data, size), handler);
+
+
+See the [link boost_asio.reference.buffer `buffer`]  documentation for information on writing multiple buffers in one go, and how to use it with arrays, boost::array or std::vector. 
+
+
+
+
+[endsect]
+
+
+
+[section:overload2 async_write_at (2 of 4 overloads)]
+
+
+Start an asynchronous operation to write a certain amount of data at the specified offset. 
+
+
+  template<
+      typename ``[link boost_asio.reference.AsyncRandomAccessWriteDevice AsyncRandomAccessWriteDevice]``,
+      typename ``[link boost_asio.reference.ConstBufferSequence ConstBufferSequence]``,
+      typename CompletionCondition,
+      typename ``[link boost_asio.reference.WriteHandler WriteHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_write_at(
+      AsyncRandomAccessWriteDevice & d,
+      uint64_t offset,
+      const ConstBufferSequence & buffers,
+      CompletionCondition completion_condition,
+      WriteHandler handler);
+
+
+This function is used to asynchronously write a certain number of bytes of data to a random access device at a specified offset. The function call always returns immediately. The asynchronous operation will continue until one of the following conditions is true:
+
+
+* All of the data in the supplied buffers has been written. That is, the bytes transferred is equal to the sum of the buffer sizes.
+
+
+* The completion\_condition function object returns 0.
+
+This operation is implemented in terms of zero or more calls to the device's async\_write\_some\_at function, and is known as a ['composed operation]. The program must ensure that the device performs no ['overlapping] write operations (such as async\_write\_at, the device's async\_write\_some\_at function, or any other composed operations that perform writes) until this operation completes. Operations are overlapping if the regions defined by their offsets, and the numbers of bytes to write, intersect.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[d][The device to which the data is to be written. The type must support the AsyncRandomAccessWriteDevice concept.]]
+
+[[offset][The offset at which the data will be written.]]
+
+[[buffers][One or more buffers containing the data to be written. Although the buffers object may be copied as necessary, ownership of the underlying memory blocks is retained by the caller, which must guarantee that they remain valid until the handler is called.]]
+
+[[completion_condition][The function object to be called to determine whether the write operation is complete. The signature of the function object must be: 
+``
+   std::size_t completion_condition(
+     // Result of latest async_write_some_at operation.
+     const boost::system::error_code& error,
+
+     // Number of bytes transferred so far.
+     std::size_t bytes_transferred
+   ); 
+``
+A return value of 0 indicates that the write operation is complete. A non-zero return value indicates the maximum number of bytes to be written on the next call to the device's async\_write\_some\_at function.]]
+
+[[handler][The handler to be called when the write operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     // Result of operation.
+     const boost::system::error_code& error,
+
+     // Number of bytes written from the buffers. If an error
+     // occurred, this will be less than the sum of the buffer sizes.
+     std::size_t bytes_transferred
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`.]]
+
+]
+
+
+[heading Example]
+  
+To write a single data buffer use the [link boost_asio.reference.buffer `buffer`]  function as follows: 
+
+   boost::asio::async_write_at(d, 42,
+       boost::asio::buffer(data, size),
+       boost::asio::transfer_at_least(32),
+       handler); 
+
+
+See the [link boost_asio.reference.buffer `buffer`]  documentation for information on writing multiple buffers in one go, and how to use it with arrays, boost::array or std::vector. 
+
+
+
+
+[endsect]
+
+
+
+[section:overload3 async_write_at (3 of 4 overloads)]
+
+
+Start an asynchronous operation to write all of the supplied data at the specified offset. 
+
+
+  template<
+      typename ``[link boost_asio.reference.AsyncRandomAccessWriteDevice AsyncRandomAccessWriteDevice]``,
+      typename Allocator,
+      typename ``[link boost_asio.reference.WriteHandler WriteHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_write_at(
+      AsyncRandomAccessWriteDevice & d,
+      uint64_t offset,
+      basic_streambuf< Allocator > & b,
+      WriteHandler handler);
+
+
+This function is used to asynchronously write a certain number of bytes of data to a random access device at a specified offset. The function call always returns immediately. The asynchronous operation will continue until one of the following conditions is true:
+
+
+* All of the data in the supplied [link boost_asio.reference.basic_streambuf `basic_streambuf`] has been written.
+
+
+* An error occurred.
+
+This operation is implemented in terms of zero or more calls to the device's async\_write\_some\_at function, and is known as a ['composed operation]. The program must ensure that the device performs no ['overlapping] write operations (such as async\_write\_at, the device's async\_write\_some\_at function, or any other composed operations that perform writes) until this operation completes. Operations are overlapping if the regions defined by their offsets, and the numbers of bytes to write, intersect.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[d][The device to which the data is to be written. The type must support the AsyncRandomAccessWriteDevice concept.]]
+
+[[offset][The offset at which the data will be written.]]
+
+[[b][A [link boost_asio.reference.basic_streambuf `basic_streambuf`] object from which data will be written. Ownership of the streambuf is retained by the caller, which must guarantee that it remains valid until the handler is called.]]
+
+[[handler][The handler to be called when the write operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     // Result of operation.
+     const boost::system::error_code& error,
+
+     // Number of bytes written from the buffers. If an error
+     // occurred, this will be less than the sum of the buffer sizes.
+     std::size_t bytes_transferred
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`. ]]
+
+]
+
+
+
+
+[endsect]
+
+
+
+[section:overload4 async_write_at (4 of 4 overloads)]
+
+
+Start an asynchronous operation to write a certain amount of data at the specified offset. 
+
+
+  template<
+      typename ``[link boost_asio.reference.AsyncRandomAccessWriteDevice AsyncRandomAccessWriteDevice]``,
+      typename Allocator,
+      typename CompletionCondition,
+      typename ``[link boost_asio.reference.WriteHandler WriteHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_write_at(
+      AsyncRandomAccessWriteDevice & d,
+      uint64_t offset,
+      basic_streambuf< Allocator > & b,
+      CompletionCondition completion_condition,
+      WriteHandler handler);
+
+
+This function is used to asynchronously write a certain number of bytes of data to a random access device at a specified offset. The function call always returns immediately. The asynchronous operation will continue until one of the following conditions is true:
+
+
+* All of the data in the supplied [link boost_asio.reference.basic_streambuf `basic_streambuf`] has been written.
+
+
+* The completion\_condition function object returns 0.
+
+This operation is implemented in terms of zero or more calls to the device's async\_write\_some\_at function, and is known as a ['composed operation]. The program must ensure that the device performs no ['overlapping] write operations (such as async\_write\_at, the device's async\_write\_some\_at function, or any other composed operations that perform writes) until this operation completes. Operations are overlapping if the regions defined by their offsets, and the numbers of bytes to write, intersect.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[d][The device to which the data is to be written. The type must support the AsyncRandomAccessWriteDevice concept.]]
+
+[[offset][The offset at which the data will be written.]]
+
+[[b][A [link boost_asio.reference.basic_streambuf `basic_streambuf`] object from which data will be written. Ownership of the streambuf is retained by the caller, which must guarantee that it remains valid until the handler is called.]]
+
+[[completion_condition][The function object to be called to determine whether the write operation is complete. The signature of the function object must be: 
+``
+   std::size_t completion_condition(
+     // Result of latest async_write_some_at operation.
+     const boost::system::error_code& error,
+
+     // Number of bytes transferred so far.
+     std::size_t bytes_transferred
+   ); 
+``
+A return value of 0 indicates that the write operation is complete. A non-zero return value indicates the maximum number of bytes to be written on the next call to the device's async\_write\_some\_at function.]]
+
+[[handler][The handler to be called when the write operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     // Result of operation.
+     const boost::system::error_code& error,
+
+     // Number of bytes written from the buffers. If an error
+     // occurred, this will be less than the sum of the buffer sizes.
+     std::size_t bytes_transferred
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`. ]]
+
+]
+
+
+
+
+[endsect]
+
+
+[endsect]
+
+[section:basic_datagram_socket basic_datagram_socket]
+
+
+Provides datagram-oriented socket functionality. 
+
+
+  template<
+      typename ``[link boost_asio.reference.Protocol Protocol]``,
+      typename ``[link boost_asio.reference.DatagramSocketService DatagramSocketService]`` = datagram_socket_service<Protocol>>
+  class basic_datagram_socket :
+    public basic_socket< Protocol, DatagramSocketService >
+
+
+[heading Types]
+[table
+  [[Name][Description]]
+
+  [
+
+    [[link boost_asio.reference.basic_datagram_socket.broadcast [*broadcast]]]
+    [Socket option to permit sending of broadcast messages. ]
+  
+  ]
+
+  [
+
+    [[link boost_asio.reference.basic_datagram_socket.bytes_readable [*bytes_readable]]]
+    [IO control command to get the amount of data that can be read without blocking. ]
+  
+  ]
+
+  [
+
+    [[link boost_asio.reference.basic_datagram_socket.debug [*debug]]]
+    [Socket option to enable socket-level debugging. ]
+  
+  ]
+
+  [
+
+    [[link boost_asio.reference.basic_datagram_socket.do_not_route [*do_not_route]]]
+    [Socket option to prevent routing, use local interfaces only. ]
+  
+  ]
+
+  [
+
+    [[link boost_asio.reference.basic_datagram_socket.enable_connection_aborted [*enable_connection_aborted]]]
+    [Socket option to report aborted connections on accept. ]
+  
+  ]
+
+  [
+
+    [[link boost_asio.reference.basic_datagram_socket.endpoint_type [*endpoint_type]]]
+    [The endpoint type. ]
+  
+  ]
+
+  [
+
+    [[link boost_asio.reference.basic_datagram_socket.implementation_type [*implementation_type]]]
+    [The underlying implementation type of I/O object. ]
+  
+  ]
+
+  [
+
+    [[link boost_asio.reference.basic_datagram_socket.keep_alive [*keep_alive]]]
+    [Socket option to send keep-alives. ]
+  
+  ]
+
+  [
+
+    [[link boost_asio.reference.basic_datagram_socket.linger [*linger]]]
+    [Socket option to specify whether the socket lingers on close if unsent data is present. ]
+  
+  ]
+
+  [
+
+    [[link boost_asio.reference.basic_datagram_socket.lowest_layer_type [*lowest_layer_type]]]
+    [A basic_socket is always the lowest layer. ]
+  
+  ]
+
+  [
+
+    [[link boost_asio.reference.basic_datagram_socket.message_flags [*message_flags]]]
+    [Bitmask type for flags that can be passed to send and receive operations. ]
+  
+  ]
+
+  [
+
+    [[link boost_asio.reference.basic_datagram_socket.native_handle_type [*native_handle_type]]]
+    [The native representation of a socket. ]
+  
+  ]
+
+  [
+
+    [[link boost_asio.reference.basic_datagram_socket.native_type [*native_type]]]
+    [(Deprecated: Use native_handle_type.) The native representation of a socket. ]
+  
+  ]
+
+  [
+
+    [[link boost_asio.reference.basic_datagram_socket.non_blocking_io [*non_blocking_io]]]
+    [(Deprecated: Use non_blocking().) IO control command to set the blocking mode of the socket. ]
+  
+  ]
+
+  [
+
+    [[link boost_asio.reference.basic_datagram_socket.protocol_type [*protocol_type]]]
+    [The protocol type. ]
+  
+  ]
+
+  [
+
+    [[link boost_asio.reference.basic_datagram_socket.receive_buffer_size [*receive_buffer_size]]]
+    [Socket option for the receive buffer size of a socket. ]
+  
+  ]
+
+  [
+
+    [[link boost_asio.reference.basic_datagram_socket.receive_low_watermark [*receive_low_watermark]]]
+    [Socket option for the receive low watermark. ]
+  
+  ]
+
+  [
+
+    [[link boost_asio.reference.basic_datagram_socket.reuse_address [*reuse_address]]]
+    [Socket option to allow the socket to be bound to an address that is already in use. ]
+  
+  ]
+
+  [
+
+    [[link boost_asio.reference.basic_datagram_socket.send_buffer_size [*send_buffer_size]]]
+    [Socket option for the send buffer size of a socket. ]
+  
+  ]
+
+  [
+
+    [[link boost_asio.reference.basic_datagram_socket.send_low_watermark [*send_low_watermark]]]
+    [Socket option for the send low watermark. ]
+  
+  ]
+
+  [
+
+    [[link boost_asio.reference.basic_datagram_socket.service_type [*service_type]]]
+    [The type of the service that will be used to provide I/O operations. ]
+  
+  ]
+
+  [
+
+    [[link boost_asio.reference.basic_datagram_socket.shutdown_type [*shutdown_type]]]
+    [Different ways a socket may be shutdown. ]
+  
+  ]
+
+]
+
+[heading Member Functions]
+[table
+  [[Name][Description]]
+
+  [
+    [[link boost_asio.reference.basic_datagram_socket.assign [*assign]]]
+    [Assign an existing native socket to the socket. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.async_connect [*async_connect]]]
+    [Start an asynchronous connect. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.async_receive [*async_receive]]]
+    [Start an asynchronous receive on a connected socket. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.async_receive_from [*async_receive_from]]]
+    [Start an asynchronous receive. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.async_send [*async_send]]]
+    [Start an asynchronous send on a connected socket. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.async_send_to [*async_send_to]]]
+    [Start an asynchronous send. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.at_mark [*at_mark]]]
+    [Determine whether the socket is at the out-of-band data mark. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.available [*available]]]
+    [Determine the number of bytes available for reading. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.basic_datagram_socket [*basic_datagram_socket]]]
+    [Construct a basic_datagram_socket without opening it. 
+
+     Construct and open a basic_datagram_socket. 
+
+     Construct a basic_datagram_socket, opening it and binding it to the given local endpoint. 
+
+     Construct a basic_datagram_socket on an existing native socket. 
+
+     Move-construct a basic_datagram_socket from another. 
+
+     Move-construct a basic_datagram_socket from a socket of another protocol type. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.bind [*bind]]]
+    [Bind the socket to the given local endpoint. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.cancel [*cancel]]]
+    [Cancel all asynchronous operations associated with the socket. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.close [*close]]]
+    [Close the socket. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.connect [*connect]]]
+    [Connect the socket to the specified endpoint. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.get_io_service [*get_io_service]]]
+    [Get the io_service associated with the object. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.get_option [*get_option]]]
+    [Get an option from the socket. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.io_control [*io_control]]]
+    [Perform an IO control command on the socket. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.is_open [*is_open]]]
+    [Determine whether the socket is open. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.local_endpoint [*local_endpoint]]]
+    [Get the local endpoint of the socket. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.lowest_layer [*lowest_layer]]]
+    [Get a reference to the lowest layer. 
+
+     Get a const reference to the lowest layer. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.native [*native]]]
+    [(Deprecated: Use native_handle().) Get the native socket representation. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.native_handle [*native_handle]]]
+    [Get the native socket representation. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.native_non_blocking [*native_non_blocking]]]
+    [Gets the non-blocking mode of the native socket implementation. 
+
+     Sets the non-blocking mode of the native socket implementation. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.non_blocking [*non_blocking]]]
+    [Gets the non-blocking mode of the socket. 
+
+     Sets the non-blocking mode of the socket. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.open [*open]]]
+    [Open the socket using the specified protocol. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.operator_eq_ [*operator=]]]
+    [Move-assign a basic_datagram_socket from another. 
+
+     Move-assign a basic_datagram_socket from a socket of another protocol type. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.receive [*receive]]]
+    [Receive some data on a connected socket. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.receive_from [*receive_from]]]
+    [Receive a datagram with the endpoint of the sender. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.remote_endpoint [*remote_endpoint]]]
+    [Get the remote endpoint of the socket. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.send [*send]]]
+    [Send some data on a connected socket. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.send_to [*send_to]]]
+    [Send a datagram to the specified endpoint. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.set_option [*set_option]]]
+    [Set an option on the socket. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.shutdown [*shutdown]]]
+    [Disable sends or receives on the socket. ]
+  ]
+  
+]
+
+[heading Protected Member Functions]
+[table
+  [[Name][Description]]
+
+  [
+    [[link boost_asio.reference.basic_datagram_socket.get_implementation [*get_implementation]]]
+    [Get the underlying implementation of the I/O object. ]
+  ]
+  
+  [
+    [[link boost_asio.reference.basic_datagram_socket.get_service [*get_service]]]
+    [Get the service associated with the I/O object. ]
+  ]
+  
+]
+
+[heading Data Members]
+[table
+  [[Name][Description]]
+
+  [
+    [[link boost_asio.reference.basic_datagram_socket.max_connections [*max_connections]]]
+    [The maximum length of the queue of pending incoming connections. ]
+  ]
+
+  [
+    [[link boost_asio.reference.basic_datagram_socket.message_do_not_route [*message_do_not_route]]]
+    [Specify that the data should not be subject to routing. ]
+  ]
+
+  [
+    [[link boost_asio.reference.basic_datagram_socket.message_end_of_record [*message_end_of_record]]]
+    [Specifies that the data marks the end of a record. ]
+  ]
+
+  [
+    [[link boost_asio.reference.basic_datagram_socket.message_out_of_band [*message_out_of_band]]]
+    [Process out-of-band data. ]
+  ]
+
+  [
+    [[link boost_asio.reference.basic_datagram_socket.message_peek [*message_peek]]]
+    [Peek at incoming data without removing it from the input queue. ]
+  ]
+
+]
+
+[heading Protected Data Members]
+[table
+  [[Name][Description]]
+
+  [
+    [[link boost_asio.reference.basic_datagram_socket.implementation [*implementation]]]
+    [(Deprecated: Use get_implementation().) The underlying implementation of the I/O object. ]
+  ]
+
+  [
+    [[link boost_asio.reference.basic_datagram_socket.service [*service]]]
+    [(Deprecated: Use get_service().) The service associated with the I/O object. ]
+  ]
+
+]
+
+The [link boost_asio.reference.basic_datagram_socket `basic_datagram_socket`] class template provides asynchronous and blocking datagram-oriented socket functionality.
+
+
+[heading Thread Safety]
+  
+['Distinct] ['objects:] Safe.
+
+['Shared] ['objects:] Unsafe. 
+
+
+
+[heading Requirements]
+
+['Header: ][^boost/asio/basic_datagram_socket.hpp]
+
+['Convenience header: ][^boost/asio.hpp]
+
+[section:assign basic_datagram_socket::assign]
+
+[indexterm2 assign..basic_datagram_socket] 
+Assign an existing native socket to the socket. 
+
+
+  void ``[link boost_asio.reference.basic_datagram_socket.assign.overload1 assign]``(
+      const protocol_type & protocol,
+      const native_handle_type & native_socket);
+  ``  [''''&raquo;''' [link boost_asio.reference.basic_datagram_socket.assign.overload1 more...]]``
+
+  boost::system::error_code ``[link boost_asio.reference.basic_datagram_socket.assign.overload2 assign]``(
+      const protocol_type & protocol,
+      const native_handle_type & native_socket,
+      boost::system::error_code & ec);
+  ``  [''''&raquo;''' [link boost_asio.reference.basic_datagram_socket.assign.overload2 more...]]``
+
+
+[section:overload1 basic_datagram_socket::assign (1 of 2 overloads)]
+
+
+['Inherited from basic_socket.]
+
+
+Assign an existing native socket to the socket. 
+
+
+  void assign(
+      const protocol_type & protocol,
+      const native_handle_type & native_socket);
+
+
+
+[endsect]
+
+
+
+[section:overload2 basic_datagram_socket::assign (2 of 2 overloads)]
+
+
+['Inherited from basic_socket.]
+
+
+Assign an existing native socket to the socket. 
+
+
+  boost::system::error_code assign(
+      const protocol_type & protocol,
+      const native_handle_type & native_socket,
+      boost::system::error_code & ec);
+
+
+
+[endsect]
+
+
+[endsect]
+
+
+[section:async_connect basic_datagram_socket::async_connect]
+
+
+['Inherited from basic_socket.]
+
+[indexterm2 async_connect..basic_datagram_socket] 
+Start an asynchronous connect. 
+
+
+  template<
+      typename ``[link boost_asio.reference.ConnectHandler ConnectHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_connect(
+      const endpoint_type & peer_endpoint,
+      ConnectHandler handler);
+
+
+This function is used to asynchronously connect a socket to the specified remote endpoint. The function call always returns immediately.
+
+The socket is automatically opened if it is not already open. If the connect fails, and the socket was automatically opened, the socket is not returned to the closed state.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[peer_endpoint][The remote endpoint to which the socket will be connected. Copies will be made of the endpoint object as required.]]
+
+[[handler][The handler to be called when the connection operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     const boost::system::error_code& error // Result of operation
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`.]]
+
+]
+
+
+[heading Example]
+  
+
+
+   void connect_handler(const boost::system::error_code& error)
+   {
+     if (!error)
+     {
+       // Connect succeeded.
+     }
+   }
+
+   ...
+
+   boost::asio::ip::tcp::socket socket(io_service);
+   boost::asio::ip::tcp::endpoint endpoint(
+       boost::asio::ip::address::from_string("1.2.3.4"), 12345);
+   socket.async_connect(endpoint, connect_handler);
+
+
+
+
+
+
+
+[endsect]
+
+
+[section:async_receive basic_datagram_socket::async_receive]
+
+[indexterm2 async_receive..basic_datagram_socket] 
+Start an asynchronous receive on a connected socket. 
+
+
+  template<
+      typename ``[link boost_asio.reference.MutableBufferSequence MutableBufferSequence]``,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.basic_datagram_socket.async_receive.overload1 async_receive]``(
+      const MutableBufferSequence & buffers,
+      ReadHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.basic_datagram_socket.async_receive.overload1 more...]]``
+
+  template<
+      typename ``[link boost_asio.reference.MutableBufferSequence MutableBufferSequence]``,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.basic_datagram_socket.async_receive.overload2 async_receive]``(
+      const MutableBufferSequence & buffers,
+      socket_base::message_flags flags,
+      ReadHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.basic_datagram_socket.async_receive.overload2 more...]]``
+
+
+[section:overload1 basic_datagram_socket::async_receive (1 of 2 overloads)]
+
+
+Start an asynchronous receive on a connected socket. 
+
+
+  template<
+      typename ``[link boost_asio.reference.MutableBufferSequence MutableBufferSequence]``,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_receive(
+      const MutableBufferSequence & buffers,
+      ReadHandler handler);
+
+
+This function is used to asynchronously receive data from the datagram socket. The function call always returns immediately.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[buffers][One or more buffers into which the data will be received. Although the buffers object may be copied as necessary, ownership of the underlying memory blocks is retained by the caller, which must guarantee that they remain valid until the handler is called.]]
+
+[[handler][The handler to be called when the receive operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     const boost::system::error_code& error, // Result of operation.
+     std::size_t bytes_transferred           // Number of bytes received.
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`.]]
+
+]
+
+
+[heading Remarks]
+      
+The async\_receive operation can only be used with a connected socket. Use the async\_receive\_from function to receive data on an unconnected datagram socket.
+
+
+[heading Example]
+  
+To receive into a single data buffer use the [link boost_asio.reference.buffer `buffer`]  function as follows: 
+
+   socket.async_receive(boost::asio::buffer(data, size), handler);
+
+
+See the [link boost_asio.reference.buffer `buffer`]  documentation for information on receiving into multiple buffers in one go, and how to use it with arrays, boost::array or std::vector. 
+
+
+
+
+[endsect]
+
+
+
+[section:overload2 basic_datagram_socket::async_receive (2 of 2 overloads)]
+
+
+Start an asynchronous receive on a connected socket. 
+
+
+  template<
+      typename ``[link boost_asio.reference.MutableBufferSequence MutableBufferSequence]``,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_receive(
+      const MutableBufferSequence & buffers,
+      socket_base::message_flags flags,
+      ReadHandler handler);
+
+
+This function is used to asynchronously receive data from the datagram socket. The function call always returns immediately.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[buffers][One or more buffers into which the data will be received. Although the buffers object may be copied as necessary, ownership of the underlying memory blocks is retained by the caller, which must guarantee that they remain valid until the handler is called.]]
+
+[[flags][Flags specifying how the receive call is to be made.]]
+
+[[handler][The handler to be called when the receive operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     const boost::system::error_code& error, // Result of operation.
+     std::size_t bytes_transferred           // Number of bytes received.
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`.]]
+
+]
+
+
+[heading Remarks]
+      
+The async\_receive operation can only be used with a connected socket. Use the async\_receive\_from function to receive data on an unconnected datagram socket. 
+
+
+
+
+[endsect]
+
+
+[endsect]
+
+[section:async_receive_from basic_datagram_socket::async_receive_from]
+
+[indexterm2 async_receive_from..basic_datagram_socket] 
+Start an asynchronous receive. 
+
+
+  template<
+      typename ``[link boost_asio.reference.MutableBufferSequence MutableBufferSequence]``,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.basic_datagram_socket.async_receive_from.overload1 async_receive_from]``(
+      const MutableBufferSequence & buffers,
+      endpoint_type & sender_endpoint,
+      ReadHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.basic_datagram_socket.async_receive_from.overload1 more...]]``
+
+  template<
+      typename ``[link boost_asio.reference.MutableBufferSequence MutableBufferSequence]``,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.basic_datagram_socket.async_receive_from.overload2 async_receive_from]``(
+      const MutableBufferSequence & buffers,
+      endpoint_type & sender_endpoint,
+      socket_base::message_flags flags,
+      ReadHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.basic_datagram_socket.async_receive_from.overload2 more...]]``
+
+
+[section:overload1 basic_datagram_socket::async_receive_from (1 of 2 overloads)]
+
+
+Start an asynchronous receive. 
+
+
+  template<
+      typename ``[link boost_asio.reference.MutableBufferSequence MutableBufferSequence]``,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_receive_from(
+      const MutableBufferSequence & buffers,
+      endpoint_type & sender_endpoint,
+      ReadHandler handler);
+
+
+This function is used to asynchronously receive a datagram. The function call always returns immediately.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[buffers][One or more buffers into which the data will be received. Although the buffers object may be copied as necessary, ownership of the underlying memory blocks is retained by the caller, which must guarantee that they remain valid until the handler is called.]]
+
+[[sender_endpoint][An endpoint object that receives the endpoint of the remote sender of the datagram. Ownership of the sender\_endpoint object is retained by the caller, which must guarantee that it is valid until the handler is called.]]
+
+[[handler][The handler to be called when the receive operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     const boost::system::error_code& error, // Result of operation.
+     std::size_t bytes_transferred           // Number of bytes received.
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`.]]
+
+]
+
+
+[heading Example]
+  
+To receive into a single data buffer use the [link boost_asio.reference.buffer `buffer`]  function as follows: 
+
+   socket.async_receive_from(
+       boost::asio::buffer(data, size), sender_endpoint, handler); 
+
+
+See the [link boost_asio.reference.buffer `buffer`]  documentation for information on receiving into multiple buffers in one go, and how to use it with arrays, boost::array or std::vector. 
+
+
+
+
+[endsect]
+
+
+
+[section:overload2 basic_datagram_socket::async_receive_from (2 of 2 overloads)]
+
+
+Start an asynchronous receive. 
+
+
+  template<
+      typename ``[link boost_asio.reference.MutableBufferSequence MutableBufferSequence]``,
+      typename ``[link boost_asio.reference.ReadHandler ReadHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_receive_from(
+      const MutableBufferSequence & buffers,
+      endpoint_type & sender_endpoint,
+      socket_base::message_flags flags,
+      ReadHandler handler);
+
+
+This function is used to asynchronously receive a datagram. The function call always returns immediately.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[buffers][One or more buffers into which the data will be received. Although the buffers object may be copied as necessary, ownership of the underlying memory blocks is retained by the caller, which must guarantee that they remain valid until the handler is called.]]
+
+[[sender_endpoint][An endpoint object that receives the endpoint of the remote sender of the datagram. Ownership of the sender\_endpoint object is retained by the caller, which must guarantee that it is valid until the handler is called.]]
+
+[[flags][Flags specifying how the receive call is to be made.]]
+
+[[handler][The handler to be called when the receive operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     const boost::system::error_code& error, // Result of operation.
+     std::size_t bytes_transferred           // Number of bytes received.
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`. ]]
+
+]
+
+
+
+
+[endsect]
+
+
+[endsect]
+
+[section:async_send basic_datagram_socket::async_send]
+
+[indexterm2 async_send..basic_datagram_socket] 
+Start an asynchronous send on a connected socket. 
+
+
+  template<
+      typename ``[link boost_asio.reference.ConstBufferSequence ConstBufferSequence]``,
+      typename ``[link boost_asio.reference.WriteHandler WriteHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.basic_datagram_socket.async_send.overload1 async_send]``(
+      const ConstBufferSequence & buffers,
+      WriteHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.basic_datagram_socket.async_send.overload1 more...]]``
+
+  template<
+      typename ``[link boost_asio.reference.ConstBufferSequence ConstBufferSequence]``,
+      typename ``[link boost_asio.reference.WriteHandler WriteHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` ``[link boost_asio.reference.basic_datagram_socket.async_send.overload2 async_send]``(
+      const ConstBufferSequence & buffers,
+      socket_base::message_flags flags,
+      WriteHandler handler);
+  ``  [''''&raquo;''' [link boost_asio.reference.basic_datagram_socket.async_send.overload2 more...]]``
+
+
+[section:overload1 basic_datagram_socket::async_send (1 of 2 overloads)]
+
+
+Start an asynchronous send on a connected socket. 
+
+
+  template<
+      typename ``[link boost_asio.reference.ConstBufferSequence ConstBufferSequence]``,
+      typename ``[link boost_asio.reference.WriteHandler WriteHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_send(
+      const ConstBufferSequence & buffers,
+      WriteHandler handler);
+
+
+This function is used to asynchronously send data on the datagram socket. The function call always returns immediately.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[buffers][One or more data buffers to be sent on the socket. Although the buffers object may be copied as necessary, ownership of the underlying memory blocks is retained by the caller, which must guarantee that they remain valid until the handler is called.]]
+
+[[handler][The handler to be called when the send operation completes. Copies will be made of the handler as required. The function signature of the handler must be: 
+``
+   void handler(
+     const boost::system::error_code& error, // Result of operation.
+     std::size_t bytes_transferred           // Number of bytes sent.
+   ); 
+``
+Regardless of whether the asynchronous operation completes immediately or not, the handler will not be invoked from within this function. Invocation of the handler will be performed in a manner equivalent to using `boost::asio::io_service::post()`.]]
+
+]
+
+
+[heading Remarks]
+      
+The async\_send operation can only be used with a connected socket. Use the async\_send\_to function to send data on an unconnected datagram socket.
+
+
+[heading Example]
+  
+To send a single data buffer use the [link boost_asio.reference.buffer `buffer`]  function as follows: 
+
+   socket.async_send(boost::asio::buffer(data, size), handler);
+
+
+See the [link boost_asio.reference.buffer `buffer`]  documentation for information on sending multiple buffers in one go, and how to use it with arrays, boost::array or std::vector. 
+
+
+
+
+[endsect]
+
+
+
+[section:overload2 basic_datagram_socket::async_send (2 of 2 overloads)]
+
+
+Start an asynchronous send on a connected socket. 
+
+
+  template<
+      typename ``[link boost_asio.reference.ConstBufferSequence ConstBufferSequence]``,
+      typename ``[link boost_asio.reference.WriteHandler WriteHandler]``>
+  ``[link boost_asio.reference.asynchronous_operations.return_type_of_an_initiating_function ['void-or-deduced]]`` async_send(
+      const ConstBufferSequence & buffers,
+      socket_base::message_flags flags,
+      WriteHandler handler);
+
+
+This function is used to asynchronously send data on the datagram socket. The function call always returns immediately.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[buffers][One or more data buffers to be sent on the socket. Although the buffers object may be copied as necessary, ownership of the underl

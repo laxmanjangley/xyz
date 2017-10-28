@@ -10,6 +10,19 @@ logger.setLevel(logging.INFO)
 # hdlr = logging.FileHandler('/var/tmp/myapp.log')
 # logger.addHandler(hdlr) 
 
+def _mkdir(newdir):
+    if os.path.isdir(newdir):
+        pass
+    elif os.path.isfile(newdir):
+        raise OSError("a file with the same name as the desired " \
+                      "dir, '%s', already exists." % newdir)
+    else:
+        head, tail = os.path.split(newdir)
+        if head and not os.path.isdir(head):
+            _mkdir(head)
+        if tail:
+            os.mkdir(newdir)
+
 def log_subprocess_output(pipe):
     for line in iter(pipe.readline, b''):
         logger.info(line)
@@ -40,7 +53,7 @@ cur_dir=os.getcwd()
 # 	package("./uri "+path_cre +" -o "+torrent_file)
 # 	#os.system("./uri "+path +" -o "+torrent_file)
 
-
+_mkdir("/home/next/Desktop/tmp")
 os.chdir("/home/next/Desktop/tmp")
 print os.system("pwd")	
 
