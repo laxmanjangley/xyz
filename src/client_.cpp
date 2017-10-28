@@ -183,5 +183,4 @@ int main(int argc, char const* argv[])
   // TODO: ideally we should save resume data here
 
 done:
-  std::cout << "\ndone, shutting down" << std::endl;
-}
+  std::cout << "\ndone, shutting down" << std::e

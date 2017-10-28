@@ -53,8 +53,8 @@ cur_dir=os.getcwd()
 # 	package("./uri "+path_cre +" -o "+torrent_file)
 # 	#os.system("./uri "+path +" -o "+torrent_file)
 
-_mkdir("/home/next/Desktop/tmp")
-os.chdir("/home/next/Desktop/tmp")
+_mkdir("/tmp/p2p/torrent")
+os.chdir("/tmp/p2p/torrent")
 print os.system("pwd")	
 
 package("wget http://192.168.35.212:15255/boost_1_61_0.torrent")
